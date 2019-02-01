@@ -23,7 +23,6 @@ class Tissue;
 // Cell Class Declaration
 
 class Cell: public enable_shared_from_this<Cell> {
-//test
 
 	private:
 		Tissue* my_tissue;
