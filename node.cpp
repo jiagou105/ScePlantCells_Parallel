@@ -3,13 +3,14 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include <stdio.h>
-#include <omp.h>
+#include <memory>
+#include <algorithm>
 //=========================
 #include "phys.h"
 #include "coord.h"
 #include "node.h"
 #include "cell.h"
+#include "tissue.h"
 //=========================
 
 //========================================
@@ -17,41 +18,50 @@
 Node::Node(Coord loc) {
 	my_loc = loc;
 	new_force = Coord();
+	int vtk_id;
 }
-
-Coord Node::get_Location() {
-    return my_loc;
+void Node::set_Damping(double new_damping){
+	this-> damping = new_damping;
+	return;
 }
-
-Coord Node::get_Force() {
-	return new_force;
+void Node::update_Location() {
+	//cout << "New Force after" << new_force << endl;
+	//cout << "Location" << my_loc << endl;
+	//cout << "damping" << damping << endl;
+	//cout << "dt" << dt << endl;
+	my_loc += new_force*dt*damping;
+	//cout << "updated" << my_loc << endl;
+	return;
 }
 void Node::update_VTK_Id(int id) {
 	vtk_id = id;
 	return;
 }
-void Node::update_Location(double& new_damping) {
-	
-	my_loc += new_force*dt*new_damping;
-	
-	return;
-}
-
 Node::~Node() {}
 //========================================
 /**class Cyt Node Functions**/
-Cyt_Node::Cyt_Node(Coord loc, Cell* my_cell) : Node(loc) {
+//constructor
+Cyt_Node::Cyt_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	this->my_cell = my_cell;
-//	isStationary = false;
-
+	return;
 }
 
-void Cyt_Node::calc_Forces() {
+void Cyt_Node::update_Cell(shared_ptr<Cell> cell){
+	this->my_cell = cell;
+	return;
+}
+void Cyt_Node::new_location(Coord location) {
+	this->my_loc = location;
+	return;
+}
+void Cyt_Node::calc_Forces(int Ti) {
 	//for cytoplasm, just need morse potential for int-int and int-membr
-	Coord Fii = calc_Morse_II();
-	Coord Fmi = calc_Morse_MI(my_cell->get_Wall_Nodes());
+	Coord Fii = calc_Morse_II(Ti);
+	//cout << "II" << Fii << endl;
+	Coord Fmi = calc_Morse_MI(my_cell->get_Left_Corner(),Ti);
+	//cout << "MI" << Fmi << endl;
    	new_force = Fmi + Fii;
-	
+	//cout << "New Force before" << new_force << endl;
 	return;
 }
 
@@ -59,18 +69,18 @@ void Cyt_Node::calc_Forces() {
 //		-all the other cyt nodes of cell
 //		-all the membr nodes of cell
 
-Coord Cyt_Node::calc_Morse_II() {
+Coord Cyt_Node::calc_Morse_II(int Ti) {
 	//calc force for II
 	Coord Fii; //initialized to zero
-
-	vector<Cyt_Node*>cyts;
 	if (my_cell==NULL) {
 		cout << "Error: Trying to access NULL Pointer. Aborting!" << endl;
 		exit(1);
 	}
+	
+	vector<shared_ptr<Cyt_Node>>cyts;
 	my_cell->get_Cyt_Nodes_Vec(cyts);
-	Cyt_Node* me = this;
-	#pragma omp parallel num_threads(8)
+	shared_ptr<Cyt_Node> me= shared_from_this();
+	#pragma omp parallel
 	{	
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
 		#pragma omp for reduction(+:Fii) schedule(static,1)
@@ -78,7 +88,7 @@ Coord Cyt_Node::calc_Morse_II() {
 			//don't calculate yourself
 			if (cyts.at(j) != me) {
 				//calc morse between this node and node j
-				Fii +=  me->morse_Equation(cyts.at(j));
+				Fii +=  me->morse_Equation(cyts.at(j), Ti);
 			}
 		}
 	}
@@ -86,18 +96,23 @@ Coord Cyt_Node::calc_Morse_II() {
 	return Fii;
 }
 
-Coord Cyt_Node::calc_Morse_MI(Wall_Node* orig) {
-	//calc force for IM
+Coord Cyt_Node::calc_Morse_MI(shared_ptr<Wall_Node> orig, int Ti) {
+	//calc force for MI
 	Coord Fmi;
-	vector<Wall_Node*> walls;
+	if (my_cell==NULL) {
+		cout << "Error: Trying to access NULL Pointer. Aborting!" << endl;
+		exit(1);
+	}
+	
+	vector<shared_ptr<Wall_Node>> walls;
 	this->get_My_Cell()->get_Wall_Nodes_Vec(walls);
-	Cyt_Node* me = this;
+	shared_ptr<Cyt_Node> me = shared_from_this();
 	#pragma omp parallel
 	{	
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
 		#pragma omp for reduction(+:Fmi) schedule(static,1)
 		for(unsigned int i = 0; i < walls.size(); i++) {
-			Fmi +=me-> morse_Equation(walls.at(i));
+			Fmi +=me-> morse_Equation(walls.at(i),Ti);
 			//update curr_wall
 		}
 	}
@@ -105,8 +120,7 @@ Coord Cyt_Node::calc_Morse_MI(Wall_Node* orig) {
 	return Fmi;
 }
 
-Coord Cyt_Node::morse_Equation(Cyt_Node* cyt) {
-	
+Coord Cyt_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {
 	if (cyt == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
 		exit(1);
@@ -116,16 +130,13 @@ Coord Cyt_Node::morse_Equation(Cyt_Node* cyt) {
     	Coord Fii;
     	Coord diff_vect = cyt->get_Location() - my_loc;
     	double diff_len = diff_vect.length();
-   	double attract = (U_II/xsi_II)*exp((diff_len*(-1.0))/xsi_II);
-    	double repel = (W_II/gamma_II)*exp((diff_len*(-1.0))/gamma_II);
-    
-//	Fii = diff_vect * (1*ALPHA*DELTA*(1-exp(-ALPHA*(diff_len -MORSE_EQ)))*(exp(-ALPHA*(diff_len-MORSE_EQ)))*(1.0/diff_len));
+	double attract = (U_II/xsi_II)*exp(diff_len*(-1)/xsi_II);
+    	double repel = (W_II/gamma_II)*exp(diff_len*(-1)/gamma_II);
 	Fii = diff_vect*((-attract + repel)/diff_len);
 	return Fii;
 }
 
-Coord Cyt_Node::morse_Equation(Wall_Node* wall) {
-
+Coord Cyt_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	if (wall == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
 		exit(1);
@@ -135,67 +146,80 @@ Coord Cyt_Node::morse_Equation(Wall_Node* wall) {
 	Coord Fmi;
 	Coord diff_vect = wall->get_Location() - my_loc; 
 	double diff_len = diff_vect.length();
-	double attract = (U_MI/xsi_MI)*exp((diff_len*(-1.0))/xsi_MI);
-   	double repel = (W_MI/gamma_MI)*exp((diff_len*(-1.0))/gamma_MI);
-    	//Fmi = diff_vect * (1*ALPHA_MI*DELTA_MI*(1-exp(-ALPHA_MI*(diff_len -MORSE_EQ_MI)))*(exp(-ALPHA_MI*(diff_len-MORSE_EQ_MI)))*(1.0/diff_len));
-  	 Fmi = diff_vect*((-attract + repel)/diff_len);
+	double attract = (U_MI/xsi_MI)*exp(diff_len*(-1)/xsi_MI);
+   	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
+     	Fmi = diff_vect*((-attract + repel)/diff_len);
 	return Fmi;
 }
 
 Cyt_Node::~Cyt_Node() {
-	my_cell = NULL;
+	//dont need to do anything
+	//because using smart pointer
 }
 
 
-//======================================================
+//===============================================================================
 /** class Wall Node Functions **/
 
 // Constructors-----------------
-Wall_Node::Wall_Node(Coord loc, Cell* my_cell) : Node(loc) {
+Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
+	//functions that use this must set
+	//left
+	//right
 	this->my_cell = my_cell;
-	this->closest = NULL;
-	this->closest_len = 100;
-	//this->side = side;
+	//equilibrium length
+	//angle
+	//klinear
+	//kbend
+	//equi angle
+	//cross prod
+	added = 0;
+	this->cyt_force = Coord(0,0);
+	//this->closest = NULL;
+	//this->closest_len = 100;
+	//adhesion pairs vec
 }
 
-Wall_Node::Wall_Node(Coord loc, Cell* my_cell, Wall_Node* left, Wall_Node* right) : Node(loc)   {
+Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right) : Node(loc)   {
+	//functions that use this must set
 	this->left = left;
     	this->right = right;
 	this-> my_cell = my_cell;
-	this->closest = NULL;
-	this->closest_len = 100;
+	//equilibrium length
 	update_Angle();
+	//klinear
+	//kbend
+	//equi angle
+	//cross prod
+	added = 1;
+	this->cyt_force = Coord(0,0);
+	//this->closest = NULL;
+	//this->closest_len = 100;
+	//adhesion pairs vec
 }
 
 Wall_Node::~Wall_Node() {
-	my_cell = NULL;	
-	left = NULL;
-	right = NULL;
-	closest = NULL;
-	//Wall_Node* wall = NULL;
-	/*while ( !closest_vec.empty()) {
-		wall = closest_vec.at(closest_vec.size() - 1);
-		delete wall;
-		closest_vec.pop_back();
-	}*/
+	//unnecessary since using
+	//smartpointers
 }
 
-//  Getters and Setters--------------------
-void Wall_Node::set_Equi_Angle(double angle) {
-	equi_angle = angle;
-	return;
-}
-
-void Wall_Node::set_Left_Neighbor(Wall_Node* new_Left) {
+//  Getters and Setters-----------------------------------------------------------
+void Wall_Node::set_Left_Neighbor(shared_ptr<Wall_Node> new_Left) {
 	this->left = new_Left;
 	return;
 }
-
-void Wall_Node::set_Right_Neighbor(Wall_Node* new_Right) {
+void Wall_Node::set_Right_Neighbor(shared_ptr<Wall_Node> new_Right) {
 	this->right = new_Right;
 	return;
 }
-
+void Wall_Node::update_Cell(shared_ptr<Cell> new_cell) {
+	this->my_cell = new_cell;
+	return;
+}
+void Wall_Node::set_membr_len(double length){
+	this->membr_equ_len = length;
+	return;
+}
 void Wall_Node::update_Angle() {
 	Coord left_vect = get_Left_Neighbor()->get_Location() - get_Location();
 	Coord right_vect = get_Right_Neighbor()->get_Location() - get_Location();
@@ -215,149 +239,168 @@ void Wall_Node::update_Angle() {
 	
 	//update protected member variables
 	my_angle = theta;
+	//cout << "Angle: " <<  theta << endl;
 	cross_Prod = crossProd;
 	
 	return;
 }
-void Wall_Node::update_Cell(Cell* new_cell) {
-	this->my_cell = new_cell;
+void Wall_Node::set_K_LINEAR(double k_lin){
+	this->K_LINEAR = k_lin;
+	return;
+}
+void Wall_Node::set_K_BEND(double k_bend) {
+	this->K_BEND = k_bend;
+	return;
 }
 void Wall_Node::update_Equi_Angle(double new_theta) {
-	equi_angle = new_theta;
-
+	this->equi_angle = new_theta;
 	return;
 }
-//void Wall_Node::clear_Closest_Vec() {
-//	while ( !closest_vec.empty()) {
-//		closest_vec.pop_back();
-//	}
-//}
-
-//void Wall_Node::set_Closest_Vec(Wall_Node* closest) {
-//	this->closest_vec.push_back(closest);
-//	return;
-//}
-void Wall_Node::set_Closest(Wall_Node*  closest, double closest_len) {
-	this->closest = closest;
-	this->closest_len = closest_len;
+void Wall_Node::set_added(int update){
+	this->added = update;
 	return;
 }
+//==========================================================
+//Adhesion functions
+//determines which nodes on neighbor cells are within adhesion
+//threshold and pushes them onto connection vector
+void Wall_Node::make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls) {
+	shared_ptr<Wall_Node> this_ptr = shared_from_this();
+	Coord this_ptr_loc = this_ptr->get_Location();
+	vector<shared_ptr<Wall_Node>> this_ptr_adh_vec;
+	this_ptr_adh_vec = this_ptr->get_adh_vec();
+	Coord neighbor_node_loc;
+	double biggest_dist;
+	double curr_distance;
+	int counter = 0;
+	//cout << "neighbor walls size : " << neighbor_walls.size() << endl;
+	for(unsigned int i= 0; i < neighbor_walls.size() ; i++) {
+		counter++;
+		//cout << "neighbor wall: " << counter << endl;
+		neighbor_node_loc = neighbor_walls.at(i)->get_Location();
+		curr_distance = (this_ptr_loc - neighbor_node_loc).length();
+			if(curr_distance < ADHThresh){
+			//	cout << "within adh thresh" << endl;
+				if(this_ptr_adh_vec.size() < NUMBER_ADH_CONNECTIONS){
+					this_ptr->adh_push_back(neighbor_walls.at(i));
+					this_ptr_adh_vec = this_ptr->get_adh_vec();
+				}
+				else{
+					//sort in descending order
+					reverse(this_ptr_adh_vec.begin(),this_ptr_adh_vec.end());
+					biggest_dist = (this_ptr_loc - this_ptr_adh_vec.at(0)->get_Location()).length();
+					
+					if(curr_distance < biggest_dist){
+						this_ptr->update_adh_vec(neighbor_walls.at(i));
+						this_ptr_adh_vec = this_ptr->get_adh_vec();
+					}
+				}
+			}
+		//cout << "adhesion vec size: " << this_ptr_adh_vec.size()<< endl;
+	}
+	return;
+}
+void Wall_Node::one_to_one_check(){
+	shared_ptr<Wall_Node> this_ptr = shared_from_this();
+	vector<shared_ptr<Wall_Node>> this_adh_vec;
+	this_adh_vec = this_ptr->adhesion_vector;
+	vector<shared_ptr<Wall_Node>> connection_adh_vec;
+	for(unsigned int i = 0; i < this_adh_vec.size(); i++){
+		connection_adh_vec = this_adh_vec.at(i)->get_adh_vec();
+		if(find(connection_adh_vec.begin(), connection_adh_vec.end(), this_ptr) != connection_adh_vec.end()){
+			//do nothing its already in there
+		}
+		else {
+			this_adh_vec.at(i)->adh_push_back(this_ptr);
+		}
+	}
+	return;
+}
+//clears adhesion vector of current node
+void Wall_Node::clear_adhesion_vec(){
+	this->adhesion_vector.clear();	
+	return;
+}
+//push back a cell wall node onto adhesion vector 
+//of current node
+void Wall_Node::adh_push_back(shared_ptr<Wall_Node> neighbor_node){
+	this->adhesion_vector.push_back(neighbor_node);
+	return;
+}
+void Wall_Node::update_adh_vec(shared_ptr<Wall_Node> node) {
+	reverse(this->adhesion_vector.begin(),this->adhesion_vector.end());
+	this->adhesion_vector.at(0) = node;
+	return;
+}
+//removes the current node from adhesion vector of
+//cell wall nodes from neighboring cells 
+void Wall_Node::remove_from_adh_vecs(){
+	shared_ptr<Wall_Node> me = shared_from_this();
+	vector<shared_ptr<Wall_Node>> neighbor_connections;
+	for(unsigned int i = 0; i < adhesion_vector.size(); i++){
+		neighbor_connections = adhesion_vector.at(i)->get_adh_vec();
+		adhesion_vector.at(i)->clear_adhesion_vec();
+		for(unsigned int j = 0; j<neighbor_connections.size();j++){
+			if(neighbor_connections.at(i) != me){
+				adhesion_vector.at(i)->adh_push_back(neighbor_connections.at(i));
+			}
+		}
+	}
+	return;
+}
+//===========================================================
 // Calc Force Functions -----------------------
+//calculates total force on current wall node
 void Wall_Node::calc_Forces(int Ti) {
-	// Initialize force sum to zero by default constructor
+	//holds the current force from all
+	//interacting nodes
 	Coord sum;
-	sum += calc_Morse_SC();
-	cout << "SC success" << endl;	
-	cyt_force = sum;
-
-	sum += calc_Morse_DC();
-	cout << "DC" << calc_Morse_DC() << endl;
+	//start with forces from nodes
+	//in the same cell
+	//calculates force from internal nodes
+	//on current wall node
+	sum += calc_Morse_SC(Ti);
+	//cout << "SC success" << endl;
+	//cout << sum << endl;
+	//each wall node wiil keep 
+	//track of force from cytoplasm
+	//for pressure measurements	
+	this->cyt_force = sum;
+	//cout << "cyt force success" << endl;
+	//linear force from left/right neighbor
 	sum += calc_Linear();
-	cout << "linear" << endl;
+	//cout << "linear success" << endl;
+	//bending force from left/right neighbor
 	sum += calc_Bending();
-	cout << "bending" << endl;
-
-	// Update new_force variable for location updating
+	//cout << "bending sucess"<< endl;
+	//different cell forces on wall nodes 
+	//from a different cell
+	//morse between neighboring cell
+	//adhesion between neighboring cell
+	sum += calc_Morse_DC(Ti);
+	//cout << "DC Success" << calc_Morse_DC(Ti) << endl;
 	new_force = sum;
-
 	return;
 }
-
 //morse potential between wall node i and every cyt node in cell
-Coord Wall_Node::calc_Morse_SC() {
-	vector<Cyt_Node*> cyt_nodes;
+Coord Wall_Node::calc_Morse_SC(int Ti) {
+	vector<shared_ptr<Cyt_Node>> cyt_nodes;
 	my_cell->get_Cyt_Nodes_Vec(cyt_nodes);
-	Wall_Node* curr_wall = this;
+	shared_ptr<Wall_Node> curr_wall= shared_from_this();
 	Coord Fmi;
 	#pragma omp parallel
 	{	
 		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
 		#pragma omp for reduction(+:Fmi) schedule(static,1)
 		for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
-			Fmi += curr_wall->morse_Equation(cyt_nodes.at(i));
+			Fmi += curr_wall->morse_Equation(cyt_nodes.at(i), Ti);
 		}
 	}
-//	cout << "	morse_sc: " << Fmi << endl;	
+
+	//cout << "morse_sc: " << Fmi << endl;	
 	return Fmi;
 }
-
-
-//morse potential between wall node i and every cyt node in cell
-Coord Wall_Node::calc_Morse_DC() {
-	Coord Fdc;
-	vector<Cell*> cells;
-	my_cell->get_Neighbor_Cells(cells);	
-	vector<Wall_Node*> walls;
-	cout << "getting neighbors dc" << endl;
-	Wall_Node* curr = NULL;
-	Wall_Node* orig = NULL;
-	#pragma omp parallel
-	{
-		
-//	printf("third region Thread ID == %d\n", omp_get_thread_num());
-		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
-		#pragma omp for reduction(+:Fdc) schedule(static,1) 
-		for (unsigned int i = 0; i < cells.size(); i++) {
-			/*for(unsigned int j = 0; j <300 cells.at(i)->get_wall_count(); j ++) {
-				cells.at(i)->get_Wall_Nodes_Vec(walls);
-				Fdc += morse_Equation(walls.at(j));
-			}
-		}*/
-			
-			Fdc += neighbor_nodes(cells.at(i));
-		}
-	}
-
-	//cout << "made it out of loop" << endl;
-	//cout << closest << endl;
-	if(this->closest != NULL){
-		cout << "closest not null" << endl;
-		closest->get_Location();
-		cout << "got location" << endl;
-		Fdc += linear_Equation_ADH(this->closest);
-		cout << "computed adh successfully" << endl;
-	}
-	//cout << " morse_DC: " << Fdc << endl;
-	return Fdc;
-}
-
-Coord Wall_Node::neighbor_nodes(Cell* neighbor) {
-	cout << "neighbor nodes"<< endl;
-	Coord sum;
-	vector<Wall_Node*> walls;
-	neighbor->get_Wall_Nodes_Vec(walls);
-	#pragma omp parallel
-	{
-		
-//	printf("fourth region Thread ID == %d\n", omp_get_thread_num());
-		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
-		#pragma omp for reduction(+:sum) schedule(static,1) 
-		for(unsigned int j =0; j< walls.size(); j++) {
-			cout << "getting wall nodes" << endl;
-			sum += morse_Equation(walls.at(j));
-			cout << "morse" << endl;
-		}
-	}
-
-	return sum;
-}			
-
-//bending force of node
-Coord Wall_Node::calc_Bending() {
-	Coord F_bend;
-
-	F_bend += bending_Equation_Center();
-	F_bend += bending_Equation_Left();
-	F_bend += bending_Equation_Right();
-	
-	if (cross_Prod < 0.0) {
-		F_bend = F_bend*(-1);
-	}	
-//	cout << "	bending: " << F_bend << endl;
-	return F_bend;
-}
-
-//spring force of neighboring springs
+//linear spring force of neighboring springs
 Coord Wall_Node::calc_Linear() {
 	Coord F_lin;
 
@@ -366,56 +409,103 @@ Coord Wall_Node::calc_Linear() {
 
 //	cout << "calc right" << endl;
 	F_lin += linear_Equation(right);
-	
-//	cout << "	linear: " << F_lin << endl;
 	return F_lin;
 }
-
-
+//bending force of node
+Coord Wall_Node::calc_Bending() {
+	Coord F_bend;
+	F_bend += bending_Equation_Center();
+	//cout << "left" << endl;
+	F_bend += bending_Equation_Left();
+	//cout << "right" << endl;
+	F_bend += bending_Equation_Right();
+	//cout << "done" << endl;
+	if (cross_Prod < 0.0) {
+		F_bend = F_bend*(-1);
+	}	
+	return F_bend;
+}
+//morse potential between wall node i and every wall node in neighboring cell
+Coord Wall_Node::calc_Morse_DC(int Ti) {
+	Coord Fdc;
+	vector<shared_ptr<Cell>> cells;
+	my_cell->get_Neighbor_Cells(cells);	
+	//cout << "Neighbor cells: " << cells.size()<<endl;
+	//cout << "getting neighbors" << endl;
+	#pragma omp parallel 
+	{
+		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+		#pragma omp for reduction(+:Fdc) schedule(static,1) 
+		for (unsigned int i = 0; i < cells.size(); i++) {
+			Fdc += neighbor_nodes(cells.at(i), Ti);
+		}
+	}
+	//cout << "Fdc" << Fdc << endl;
+	//cout << "adhesion" << endl;
+	vector<shared_ptr<Wall_Node>> adhesion_pairs;
+	adhesion_pairs = this->get_adh_vec();
+	for(unsigned int i = 0; i < adhesion_pairs.size(); i++){
+		Fdc += this->linear_Equation_ADH(adhesion_pairs.at(i));	
+	}
+	return Fdc;
+}
+//function to get all wall nodes of neighbor cell i
+Coord Wall_Node::neighbor_nodes(shared_ptr<Cell> neighbor, int Ti) {
+	Coord sum;
+	vector<shared_ptr<Wall_Node>> walls;
+	neighbor->get_Wall_Nodes_Vec(walls);
+	//cout << "Number walls" << walls.size() << endl;
+	shared_ptr<Wall_Node> me = shared_from_this();
+	#pragma omp parallel
+	{
+		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+		#pragma omp for reduction(+:sum) schedule(static,1) 
+		for(unsigned int j =0; j< walls.size(); j++) {
+			sum += me->morse_Equation(walls.at(j), Ti);
+		}
+	}
+	//cout<< "Sum: " << sum << endl;
+	return sum;
+}			
 //===========================================================
 // Mathematical force calculations
-
-
-Coord Wall_Node::morse_Equation(Cyt_Node* cyt) {
+Coord Wall_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {
 	if (cyt == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
+		exit(1);
 	}
 	
 	//use Membr - int variables
 	Coord Fmi;
 	Coord diff_vect = cyt->get_Location() - my_loc;
 	double diff_len = diff_vect.length();
-	double attract = (U_MI/xsi_MI)*exp((diff_len*(-1.0))/xsi_MI);
-	double repel = (W_MI/gamma_MI)*exp((diff_len*(-1.0))/gamma_MI);
+	double attract = (U_MI/xsi_MI)*exp(diff_len*(-1)/xsi_MI);
+	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
 
-	//Fmi = diff_vect * (1*ALPHA_MI*DELTA_MI*(1-exp(-ALPHA_MI*(diff_len -MORSE_EQ_MI)))*(exp(-ALPHA_MI*(diff_len-MORSE_EQ_MI)))*(1.0/diff_len));
-  	 Fmi = diff_vect*((-attract + repel)/diff_len);
+	Fmi = diff_vect*((-attract + repel)/diff_len);
 	
 	//cout << Fmi << endl;
 	return Fmi;
 }
 
-Coord Wall_Node::morse_Equation(Wall_Node* wall) {
+Coord Wall_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	if (wall == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
+		exit(1);
 	}
 
 	//use Mem-Mem variables
    	Coord Fmmd;
    	Coord diff_vect = wall->get_Location() - my_loc;
     	double diff_len = diff_vect.length();
-    	double attract = (U_MM/xsi_MM)*exp((diff_len*(-1.0))/xsi_MM);
-    	double repel = (W_MM/gamma_MM)*exp((diff_len*(-1.0))/gamma_MM);
-    
-   	 //Fmmd =  diff_vect*(0);//(-attract + repel)/diff_len);
-	 Fmmd = diff_vect*((-attract + repel)/diff_len);
+      	double attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
+    	double repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
+   	
+	Fmmd = diff_vect*((-attract + repel)/diff_len);
 	
-	//	cout << Fmmd << endl;
+	//cout << Fmmd << endl;
 	return Fmmd;
 }
-
-
-
 Coord Wall_Node::bending_Equation_Center() {
 	Coord F_center;
 	double self_Constant; 
@@ -426,15 +516,8 @@ Coord Wall_Node::bending_Equation_Center() {
 		return F_center;
 	}
 	else {
-		//if((this->get_My_Cell()->get_Layer() == 1) || (this->get_My_Cell()->get_Layer() ==2)){
-		//	self_Constant = K_BEND_L1*(my_angle - equi_angle)/(sqrt(1-pow(cos(my_angle),2)));
-		//}
-		//else {
-			self_Constant = K_BEND*(my_angle - equi_angle)/(sqrt(1-pow(cos(my_angle),2)));
-		//}
+		self_Constant = K_BEND*(my_angle - equi_angle)/(sqrt(1-pow(cos(my_angle),2)));
 	}
-
-
 	Coord left_vect = left->get_Location() - my_loc;
 	Coord right_vect = right->get_Location() - my_loc;
 	double left_len = left_vect.length();
@@ -449,10 +532,9 @@ Coord Wall_Node::bending_Equation_Center() {
 	//cout << "Bending center: " << F_center << endl;	
 	return F_center;
 }
-
 Coord Wall_Node::bending_Equation_Left() {
 	Coord F_left;
-	//double left_k_bend = left->get_Bending_Spring();
+	double K_BEND = left->get_K_BEND();
 	double left_equi_angle = left->get_Equi_Angle();
 	double left_angle = left->get_Angle();
 	double left_Constant;
@@ -463,12 +545,7 @@ Coord Wall_Node::bending_Equation_Left() {
 		return F_left;
 	}
 	else {
-		//if((this->get_My_Cell()->get_Layer() == 1) || (this->get_My_Cell()->get_Layer() ==2)){
-		//	left_Constant = K_BEND_L1*(left_angle - left_equi_angle)/(sqrt(1-pow(cos(left_angle),2)));
-		//}
-		//else {
-			left_Constant = K_BEND*(left_angle - left_equi_angle)/(sqrt(1-pow(cos(left_angle),2)));
-		//}
+		left_Constant = K_BEND*(left_angle - left_equi_angle)/(sqrt(1-pow(cos(left_angle),2)));
 	}
 		
 
@@ -487,7 +564,7 @@ Coord Wall_Node::bending_Equation_Left() {
 
 Coord Wall_Node::bending_Equation_Right() {
 	Coord F_right;
-	//double right_k_bend = right->get_Bending_Spring();
+	double K_BEND = right->get_K_BEND();
 	double right_equ_angle = right->get_Equi_Angle();
 	double right_angle = right->get_Angle();
 	double right_Constant;
@@ -497,12 +574,8 @@ Coord Wall_Node::bending_Equation_Right() {
 	if (abs(right_angle - pi) < eps) {
 		return F_right;
 	}
-	else {
-		//if((this->get_My_Cell()->get_Layer() == 1) || (this->get_My_Cell()->get_Layer() ==2)) {
-		///	right_Constant = K_BEND_L1*(right_angle-right_equ_angle)/(sqrt(1-pow(cos(right_angle),2)));
-		//}
-		//else{
-			right_Constant = K_BEND*(right_angle-right_equ_angle)/(sqrt(1-pow(cos(right_angle),2)));
+	else{
+		right_Constant = K_BEND*(right_angle-right_equ_angle)/(sqrt(1-pow(cos(right_angle),2)));
 		//}
 	}
 
@@ -518,37 +591,26 @@ Coord Wall_Node::bending_Equation_Right() {
 	//cout << "Bending right: " << F_right << endl;
 	return F_right;
 }
-
-Coord Wall_Node::linear_Equation(Wall_Node* wall) {
+Coord Wall_Node::linear_Equation(shared_ptr<Wall_Node> wall) {
 	if (wall == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
+		exit(1);
 	}
 	
 	//use spring constant variables
 	Coord F_lin;
-	Coord  k_linear = this->get_My_Cell()->get_K_LINEAR();
-//	Coord K_LINEAR;
-//	if(this->get_My_Cell()->get_Layer() == 1) {
-//		K_LINEAR = K_LINEAR_WIDE;
-//	}
-//	else {
-//		K_LINEAR = K_LINEAR_LONG;
-//	}
 	Coord diff_vect = wall->get_Location() - my_loc;
 	double diff_len = diff_vect.length();
-	Coord scaled_k = k_linear*(diff_len - MembrEquLen);
-	F_lin = (diff_vect/diff_len).distribute(scaled_k);
 
+	F_lin = (diff_vect/diff_len)*K_LINEAR*(diff_len - this->membr_equ_len);
+	//cout << "linear" << F_lin << endl;
 	return F_lin;	
 }
 
-Coord Wall_Node::linear_Equation_ADH(Wall_Node*& wall) {
-	//cout << "wall node is: " << wall << endl;
-	//Wall_Node* wall = NULL;
-//	for(unsigned int i = 0;i < closest_nodes.size();i++){
-//		wall = closest_nodes.at(i);
+Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 	if (wall == NULL) {
-		cout << "Problems for days" << endl;
+		cout << "Error: Trying to access NULL pointer Aborting!" << endl;
+		exit(1);
 	};
 	Coord F_lin;
 //	cout << "compute diff vec" << endl;
@@ -556,111 +618,19 @@ Coord Wall_Node::linear_Equation_ADH(Wall_Node*& wall) {
 //	cout << "wall loc"  << endl;
 	Coord loc = my_loc;
 //	cout << "my loc " << endl;
-	Coord diff_vect = wall->get_Location() - my_loc;
+	Coord diff_vect = wall_loc - loc;
 //	cout << "coord diff is : " << diff_vect << endl;
 	double diff_len = diff_vect.length();
-	if((wall->get_My_Cell()->get_Layer() == 1) && (this->get_My_Cell()->get_Layer() == 1)) {
+	if(this->get_My_Cell()->get_Layer() == 1){
 		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));
 	}
-	else {
+	else if(this->get_My_Cell()->get_Layer() == 2){
+		F_lin = (diff_vect/diff_len)*(K_ADH_L2*(diff_len - MembrEquLen_ADH));
+	}
+	else{
 		F_lin = (diff_vect/diff_len)*(K_ADH*(diff_len - MembrEquLen_ADH));
 	}
-//	}
-
 	return F_lin;
 }
-
-//==========================================================
-//Adhesion functions
-
-Wall_Node* Wall_Node::find_Closest_Node(vector<Cell*>& neighbors) {
-	Wall_Node* curr = NULL;
-	Wall_Node* orig = NULL;
-	Wall_Node* next = NULL;
-	Cell* curr_cell = NULL;
-	Wall_Node* closest = NULL;
-	double curr_dist = 0;
-	double smallest = 100;
-	for(int i = 0; i < neighbors.size(); i++) {
-		curr_cell = neighbors.at(i);
-		//find the closest node on curr_Side
-		curr = curr_cell->get_Left_Corner();
-		orig = curr;
-		do{
-			next = curr->get_Left_Neighbor();
-			curr_dist = (this->my_loc - curr->get_Location()).length();
-			if(curr_dist < ADHThresh) {
-				if(curr_dist < smallest) {
-					closest = curr;
-					smallest = curr_dist;
-				}
-			}
-			curr = next;
-		} while (next != orig);
-	}
-	return closest;
-}
-
-
-void Wall_Node::make_Connection(Wall_Node* curr_Closest) {
-	double curr_dist = 0;
-	if(curr_Closest != NULL) {
-		curr_dist = (this->get_Location() - curr_Closest->get_Location()).length();
-		
-	//	if(curr_Closest->get_Closest() ==NULL) {
-	//		if(this->closest != NULL) {
-	//			this->closest->set_Closest(NULL,100);
-	//		}
-			this->closest = curr_Closest;
-			this->closest_len = curr_dist;
-	//		curr_Closest->set_Closest(this,curr_dist);
-	//	}	
-		/*else {
-			if(curr_Closest->get_Closest()== this) {
-				this->closest = curr_Closest;
-				this->closest_len = curr_dist;
-			}
-			else if(curr_dist < curr_Closest->get_Closest_Len()) { 
-				if(this->closest != NULL) {
-					this->closest->set_Closest(NULL,100);
-				}
-				
-				this->closest = curr_Closest;
-				this->closest_len = curr_dist;
-				curr_Closest->get_Closest()->set_Closest(NULL,100);
-				curr_Closest->set_Closest(this,curr_dist);
-			
-			}
-		}*/
-	
-	/*	else if((this->get_Closest() == NULL) && (curr_Closest->get_Closest() != NULL)) {
-			if(curr_dist < curr_Closest->get_Closest_Len()) {
-				this->closest = curr_Closest;
-				this->closest_len = curr_dist;
-				curr_Closest->get_Closest()->set_Closest(NULL,100);
-				curr_Closest->set_Closest(this,curr_dist);
-			}
-		}
-		else if((this->get_Closest()!= NULL) && (curr_Closest->get_Closest() != NULL)) {
-			if(this->closest == curr_Closest->get_Closest()) {
-				//do nothin
-			}
-			else if(curr_dist < this->closest_len) {
-				if(curr_dist < curr_Closest->get_Closest_Len()) {
-					this->closest->set_Closest(NULL,100);
-					this->closest = curr_Closest;
-					this->closest_len = curr_dist;
-					curr_Closest->get_Closest()->set_Closest(NULL,100);
-					curr_Closest->set_Closest(this,curr_dist);
-				}
-		
-			}
-			
-		}*/
-	}
-	return;
-}
-
 //==========================================================
 // End of node.cpp
-

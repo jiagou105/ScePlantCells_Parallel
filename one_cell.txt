@@ -1,0 +1,5 @@
+CellRank:1
+Center:8,0
+Radius:3.75
+Layer:1
+End_Cell

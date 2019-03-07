@@ -8,16 +8,15 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
-#include <stdio.h>
-#include <omp.h>
-
+#include <memory>
 #include "phys.h"
 #include "coord.h"
 #include "cell.h"
 #include "tissue.h"
 //=========================
 // Public Member Functions for Tissue.cpp
-
+//tissue constructor makes new tissue from 
+//.txt file that is read in
 Tissue::Tissue(string filename) {
 	num_cells = 0;
 	ifstream ifs(filename.c_str());
@@ -33,11 +32,11 @@ Tissue::Tissue(string filename) {
 	char trash;
 	int rank;
 	int layer;
+	int boundary;
 	double radius;
 	Coord center;
 	double x, y;
-	Cell* curr;
-
+	Tissue* my_tissue = this;
 	while (getline(ifs,line)) {
 		ss.str(line);
 
@@ -57,9 +56,16 @@ Tissue::Tissue(string filename) {
 		else if (temp == "Layer") {
 			ss >> layer;
 		}
+		else if (temp == "Boundary"){
+			ss >> boundary;
+		}
 		else if (temp == "End_Cell") {
-			//create new cell with collected data and push onto vector 
-			curr = new Cell(rank, center, radius, this, layer);
+			//create new cell with collected data 
+			//and push onto vector that holds all cells in tissue 
+			//cout<< "making a cell" << endl;
+			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary);
+			//give that cell wall nodes and internal nodes
+			curr->make_nodes(radius);
 			num_cells++;
 			cells.push_back(curr);
 		}
@@ -71,101 +77,201 @@ Tissue::Tissue(string filename) {
 }
 
 Tissue::~Tissue() {
-	
-	Cell* curr = NULL;
-	while ( !cells.empty() ) {
-		curr = cells.at(cells.size() - 1);
-		delete curr;
-		cells.pop_back();
-	}
+	//not necessary because 
+	//using smartpointers
 }
+
 //*********functions for tissue to return information i.e.************//
 //*********updating or returning the number of cells in the tissue*******//
-void Tissue::get_Cells(vector<Cell*>& cells) {
+void Tissue::get_Cells(vector<shared_ptr<Cell>>& cells) {
 	cells = this->cells;
 	return;
 }
-
-void Tissue::update_Num_Cells(Cell*& new_Cell) {
+void Tissue::update_Num_Cells(shared_ptr<Cell>& new_Cell) {
 	num_cells++;
+	//cout << num_cells << endl;
 	cells.push_back(new_Cell);
 	return;
 }
-//**********function for tissue to perform on cells********//
+//**********functions for tissue to perform on cells********//
+//updates current neighbors of each cell
+void Tissue::update_Neighbor_Cells() {
+	//update vectors of neighboring cells
+	#pragma omp parallel for schedule(static,1)
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->update_Neighbor_Cells();	
+	}
+	return;
+}
+//adds node to cell wall for each cell
+void Tissue::add_Wall(int Ti) {
+//	#pragma omp parallel for schedule(static,1)
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->add_Wall_Node(Ti);
+	}
+	//cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_Wall_Count() << endl;
+	return;
+}
+void Tissue::delete_Wall(int Ti) {
+ 	#pragma omp parallel for schedule(static,1)
+	for (unsigned int i = 0; i < cells.size(); i++) {
+//		cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_wall_count() << endl;
+		
+//		cells.at(i)->delete_Wall_Node(Ti);
+
+
+//		cout<< "Wall Count Cell " << i << ": " << this->cells.at(i)->get_wall_count() << endl;
+	}
+	return;
+}
+//updates adhesion springs for each cell
+void Tissue::update_Adhesion() {
+	//#pragma omp parallel for schedule(static,1)
+	for(unsigned int i=0;i<cells.size();i++) {
+
+		//cout << "Updating adhesion for cell" << i <<  endl;
+		cells.at(i)->clear_adhesion_vectors();
+	}
+	for(unsigned int i=0;i<cells.size();i++) {
+		cells.at(i)->update_adhesion_springs();
+	}
+	
+	return;
+}
+//this function is not in use
+void Tissue::update_Linear_Bending_Springs(){
+	#pragma omp parallel for schedule(static,1)
+	for(unsigned int i = 0;i<cells.size();i++){
+		cells.at(i)->update_Linear_Bending_Springs();
+	}
+	return;
+}	
 //**********updates cell cycle of each cell************//
 void Tissue::update_Cell_Cycle(int Ti) {
 	//cout << "Current number of cells: " << cells.size() << endl; 
 	int number_cells = cells.size();
 	#pragma omp parallel for schedule(static,1)
-	for (unsigned int i = 0; i < number_cells; i++) {
+	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cout << "updating cell" << i << endl;
 		cells.at(i)->update_Cell_Progress(Ti);
 	}
 	//cout << "Number cells is: " << cells.size() << endl;
 	return;
+
 }
-//adds node to cell wall if needed for each cell
-void Tissue::update_Wall() {
-	#pragma omp parallel for schedule(static,1)
+void Tissue::division_check(){
+	int number_cells = cells.size();
+	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		//cout << "added wall"<< endl;
-		cells.at(i)->wall_Node_Check();
-		//cout<< "Wall Count Cell " << endl; //i << ": " << cells.at(i)->get_Wall_Count() << endl;
+		//cout << "updating cell" << i << endl;
+		cells.at(i)->division_check();
 	}
 	return;
 }
+	
 //calculates the forces for nodes of  each cell 
 void Tissue::calc_New_Forces(int Ti) {
+
 	#pragma omp parallel for schedule(static,1)
-	
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		//printf("first region Thread ID == %d\n", omp_get_thread_num());
-	
+		
 		//cout << "Calc forces for cell: " << i << endl;
 		cells.at(i)->calc_New_Forces(Ti);
 		//cout << "success for cell: " << i << endl;
+	
 	}
 	return;
 }
-
 //updates the location of all the nodes of each cell
 void Tissue::update_Cell_Locations() {
 	#pragma omp parallel for schedule(static,1)	
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->update_Node_Locations();
 	}
-	return;
-}
-//updates current neighbors of each cell
-void Tissue::update_Neighbor_Cells() {
-	//update vectors of neighboring cells
-	#pragma omp parallel for schedule(static,1)
-	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->update_Neighbor_Cells();
-	}
-	return;
-}
-//updates adhesion springs for each cell
-void Tissue::update_Adhesion() {
-	#pragma omp parallel for schedule(static,1)
-	for(unsigned int i=0;i<cells.size();i++) {
-		//cout << "Updating adhesion for cell" << endl;
-		cells.at(i)->update_adhesion_springs();
-	}
+
+return;
 }
 
-void Tissue::add_cyt_node(){
-	#pragma omp parallel for schedule(static,1)
-	for(unsigned int i =0; i < cells.size(); i++) {
-		cells.at(i)->add_Cyt_Node();
+void Tissue::locations_output(ofstream& ofs){
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_locations(ofs);
 	}
+
+return;
+}
+void Tissue::nematic_output(ofstream& ofs){
+	Coord average;
+	double angle;
+	/*for(unsigned int i = 0; i<cells.size();i++){
+		ofs << cells.at(i)->get_Layer()<<endl;
+		ofs << cells.at(i)->get_Rank() << endl;
+	}*/
+	//ofs << "average vec" << endl;
+	/*for(unsigned int i=0; i < cells.size(); i++) {
+		cells.at(i)->nematic(average, angle);
+		ofs<< average.get_X() << endl;
+	}
+	//ofs << "average vec" << endl;
+	for(unsigned int i=0; i < cells.size(); i++) {
+		cells.at(i)->nematic(average, angle);
+		ofs << average.get_Y() << endl;
+	}
+	//ofs << "angles" << endl;
+	for(unsigned int i=0; i < cells.size(); i++) {
+		cells.at(i)->nematic(average, angle);
+		ofs<< angle << endl;
+	}*/
+	//ofs<< "centers2" << endl;
+	//for(unsigned int i=0; i< cells.size();i++) {
+	//	if(cells.at(i)->get_Layer() ==2){
+	//		ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
+	//	}
+	//}
+	//for(unsigned int i=0; i< cells.size();i++) {
+	//	if(cells.at(i)->get_Layer() ==2){
+	//		ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
+	//	}
+	//}
+	//ofs << "centers1" << endl;
+	//for(unsigned int i=0; i< cells.size();i++) {
+	//	if(cells.at(i)->get_Layer() ==1){
+	//		ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
+	//	}
+	//}
+	//ofs << "centers1" << endl;
+	//for(unsigned int i=0; i< cells.size();i++) {
+	//	if(cells.at(i)->get_Layer() ==1){
+	//		ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
+	//	}
+	//}
+	//ofs << "centers2" << endl;
+	for(unsigned int i=0; i< cells.size();i++) {
+	//	if(cells.at(i)->get_Layer() ==2){
+			ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
+	//	}
+	}
+	//ofs << "centers1" << endl;
+	for(unsigned int i=0; i< cells.size();i++) {
+	//	if(cells.at(i)->get_Layer() ==2){
+			ofs<< cells.at(i)->get_Cell_Center().get_Y() << endl;
+	//	}
+	}
+	//for(unsigned int i=0; i< cells.size();i++) {
+	//	ofs<< cells.at(i)->get_Cell_Center().get_X() << endl;
+	//	ofs <<cells.at(i)->get_Cell_Center().get_Y() << endl;
+	//}
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		ofs << cells.at(i)->get_WUS_concentration()<<endl;
+	}
+	for (unsigned int i = 0; i < cells.size(); i++) {
+	//	ofs << cells.at(i)->average_Pressure() << endl;
+	}
+		
+
+	
 	return;
 }
 //***Functions for VTK output****//
-void Tissue::print_Data_Output(ofstream& ofs) {
-	return;
-}
-
 int Tissue::update_VTK_Indices() {
 
 	int id = 0;
@@ -211,11 +317,10 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 
 	ofs << endl;
+	//to be used without visualizing ADH springs
 	//ofs << "CELLS " << cells.size()<< ' ' << (num_Points + start_points.size())  << endl;
-	//adh
+	//to be used for visualizing adh springs
 	ofs << "CELLS " << cells.size()+rel_cnt<< ' ' << (num_Points + start_points.size())+(rel_cnt*3)  << endl;
-
-
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		ofs << cells.at(i)->get_Node_Count();
 
@@ -225,24 +330,23 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 		ofs << endl;
 	}
 	
-//	output pairs of node indices to draw adh line
+//	//output pairs of node indices to draw adh line
 	for(unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Adh(ofs);
 	}
 
 	ofs << endl;
-
+	//no adh visualization
 	//ofs << "CELL_TYPES " << start_points.size() << endl;
-	//adh	
+	//adh visualization
 	ofs << "CELL_TYPES " << start_points.size()+rel_cnt << endl;
 	
-
 	for (unsigned int i = 0; i < start_points.size(); i++) {
 		ofs << 2 << endl;
 	}
 
 	for(unsigned int i = 0; i < rel_cnt; i++) {
-//		//type for adh relationship
+		//type for adh relationship
 		ofs << 3 << endl;
 	}
 
@@ -250,22 +354,32 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 
 
 	ofs << "POINT_DATA " << num_Points << endl;
-	ofs << "SCALARS magnitude double " << 1 << endl;
+	ofs << "SCALARS WUS  double " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Scalars_WUS(ofs);
 	}
-	ofs << "SCALARS force double " << 1 << endl;
-	ofs << "LOOKUP_TABLE default" << endl;
-	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Scalars_Force(ofs);
-	}
 
 	ofs << endl;
 
-	ofs << "VECTORS force float" << endl;
+	ofs << "SCALARS CK  double " << 1 << endl;
+	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells.at(i)->print_VTK_Vectors(ofs);
+		cells.at(i)->print_VTK_Scalars_CK(ofs);
+	}
+
+	ofs << endl;
+	/*ofs << "Scalars average_pressure float" << endl;
+	ofs << "LOOKUP_TABLE default" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		//cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);
+	}
+	ofs << endl;*/
+
+	ofs << "Scalars wall_pressure float" << endl;
+	ofs << "LOOKUP_TABLE default" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Scalars_Node(ofs);
 	}
 	return;
 }

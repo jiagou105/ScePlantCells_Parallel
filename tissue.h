@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
-
+#include <memory>
 #include "phys.h"
 #include "coord.h"
 #include "node.h"
@@ -19,35 +19,36 @@
 //=========================
 // Tissue Class Declaration
 
-class Tissue {
-
+//class Tissue: public enable_shared_from_this<Tissue> {
+class Tissue{
 	private:
 		// We'll need a better data structure for later
-		vector<Cell*> cells;
+		vector<shared_ptr<Cell>> cells;
 		int num_cells;
 	public:
 		Tissue(string filename);
-		void get_Cells(vector<Cell*>& cells);
-		void update_Num_Cells(Cell*& new_Cell);
+		void get_Cells(vector<shared_ptr<Cell>>& cells);
+		void update_Num_Cells(shared_ptr<Cell>& new_Cell);
+		int  get_num_cells() {return num_cells;}
+		void update_Neighbor_Cells();
+		void add_Wall(int Ti);
+		void delete_Wall(int Ti);
+		void update_Adhesion();
+		//not in use
+		void update_Linear_Bending_Springs();
+		
 		void update_Cell_Cycle(int Ti);
-		void update_Wall();
+		void division_check();
 		void calc_New_Forces(int Ti);
 		void update_Cell_Locations();
-		void update_Neighbor_Cells();
-		void update_Adhesion();
-		void compression_Test();
-		void pressure();
-		void add_cyt_node();
-		void set_Stationary_Points(int Ti);
-		void stretching_Test();
-		void elastic_mod_measurements();
-		void cell_area();
-		//void cell_strain();
-		void make_Vectors();
+		
+		//stuff for data output
+		void nematic_output(ofstream& ofs);
 		void print_Data_Output(ofstream& ofs);
+		void locations_output(ofstream& ofs);
 		int update_VTK_Indices();
 		void print_VTK_File(ofstream& ofs);
-		int get_Num_Cells() {return num_cells;}
+		
 		//Destructor
 		~Tissue();
 };

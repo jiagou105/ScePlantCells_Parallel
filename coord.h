@@ -33,6 +33,8 @@ class Coord {
 		Coord operator/(const double d) const;
 		Coord operator*(const double d) const;
 		Coord distribute(const Coord& c) const;
+		bool operator==(const Coord& c); 
+		bool operator!=(const Coord&c);
 		// Higher level math tasks
 		double dot(const Coord& c) const;
 		double cross(const Coord& c) const;
