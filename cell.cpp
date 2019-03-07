@@ -61,13 +61,13 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//this->boundary = boundary
 	//set damping for cells that act as anchor points
 	if(layer == 6) {
-		this->damping = .3;
+		this->damping = BOTTOM_DAMP;
 	}
-	//else if((this->boundary == 1)){
-	//	this->damping =  .3;
-	//}
+	else if((this->boundary == 1)){
+		this->damping =  BOUNDARY_DAMP;
+	}
 	else{
-		this->damping = 1;
+		this->damping = REG_DAMP;
 	}
 	life_length = 0;
 	//cyt nodes initialized in tissue constructor which
@@ -87,12 +87,14 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
          else {
                  this->growth_direction = Coord(0,1);
          }
+	//cout << "layer" << this->layer << endl;
+	//cout << "gd" << this->growth_direction << endl;
 	//neighbors update function called after initialization
 	//left corner set in make nodes function called by tissue constuctor
 }
 //calls compute membrane equi length for each node
-//calls compute linear spring constatn for each node
-//calls comput bending spring constant for each node
+//calls compute linear spring constant for each node
+//calls compute bending spring constant for each node
 //calls update wall equi angles for each node
 //calls update wall angles to get initial angle of each node
 void Cell::make_nodes(double radius){
@@ -139,7 +141,7 @@ void Cell::make_nodes(double radius){
 	orig->set_Right_Neighbor(currW);
 	
 	//reindex wall node vector for vertical growing cells
-	//this might not be necessary
+	//this is old and  not necessary
 	//if(this->growth_direction == Coord(0,1)){
 	//	for(int i = 0; i<35; i++){
 	//		this->left_Corner = left_Corner->get_Left_Neighbor();
@@ -263,7 +265,14 @@ void Cell::calc_WUS() {
 	return;
 }
 void Cell::set_growth_rate() {
-	this->growth_rate = 2000;//unifRandInt(1000,2000);
+	//this->growth_rate = 2000;//unifRandInt(1000,2000);
+	if(this->layer == 1) {
+		this->growth_rate = 4500;
+	}
+	else{
+		this->growth_rate = 9000;
+	}
+
 	/*if(this->wuschel < 12){
 		this->growth_rate = unifRandInt(2000,3000);
 	}
@@ -377,6 +386,48 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	//high bending coefficient
 	//nodes that are perpendicular to growth direction have 
 	//low bending coefficient
+	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))) {
+		//fine
+	}
+	else{
+		cout << "No growth direction assigned" << endl;
+		exit(1);
+	}
+	double k_bend = 0;
+        double theta = 0;
+        double costheta = 0;
+	double curr_len = 0;
+	double growth_len = 0;
+	Coord curr_vec;	
+	curr_vec = current->get_Left_Neighbor()->get_Location() - current->get_Location();
+	curr_len = curr_vec.length();	
+	growth_len = 1;
+	costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+	theta = acos( min( max(costheta,-1.0), 1.0) );
+	//cout << "Theta: " << theta << endl;D
+	if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
+		k_bend = K_BEND_STIFF;
+	}
+	else { 
+		k_bend = K_BEND_LOOSE;
+
+	}
+	//cout << "K bend: " << k_bend << endl;
+	return k_bend;
+}
+double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
+	//coefficient of bending spring is very important
+	//nodes that are parrallel to growth direction have 
+	//high bending coefficient
+	//nodes that are perpendicular to growth direction have 
+	//low bending coefficient
+	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))) {
+		//fine
+	}
+	else{
+		cout << "No growth direction assigned" << endl;
+		exit(1);
+	}
 	double k_bend = 0;
         double theta = 0;
         double costheta = 0;
@@ -389,29 +440,16 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
 	theta = acos( min( max(costheta,-1.0), 1.0) );
 	//cout << "Theta: " << theta << endl;
-	if(this->growth_direction == Coord(0,1)){
-		if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
-			k_bend = K_BEND_STIFF;
-		}
-		else { 
-			k_bend = K_BEND_LOOSE;
-		}
+	if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
+		k_bend = K_BEND_STIFF;
 	}
-	else if(this->growth_direction == Coord(1,0)){
-		if((theta > ANGLE_FIRST_QUAD)&& (theta < ANGLE_SECOND_QUAD)){
-			k_bend = K_BEND_STIFF;
-		}
-		else { 
-			k_bend = K_BEND_LOOSE;
-		}
-	}
-	else {
-		cout << "No growth direction assigned" << endl;
-		exit(1);
+	else { 
+		k_bend = K_BEND_LOOSE;
 	}
 	//cout << "K bend: " << k_bend << endl;
 	return k_bend;
 }
+
 void Cell::update_Wall_Angles() {
 	//cout << "wall angles" << endl;
 	vector<shared_ptr<Wall_Node>> walls;
@@ -447,36 +485,66 @@ void Cell::update_Wall_Equi_Angles() {
 			growth_len = this->growth_direction.length();
 			costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
 			theta = acos( min( max(costheta,-1.0), 1.0) );
-			if(this->growth_direction == Coord(0,1)){
-				if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
-					new_equi_angle = circle_angle = pi;
-				}
-				else{
-					//counter++;
-					new_equi_angle = circle_angle;
-				}
+			if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
+				new_equi_angle = pi;
 			}
-			else if(this->growth_direction == Coord(1,0)){
-				if((theta > ANGLE_FIRST_QUAD) && (theta < ANGLE_SECOND_QUAD)){
-					new_equi_angle = pi;
-				}
-				else{
-					//counter++;
-					new_equi_angle = circle_angle;
-				}
-			}
-			else {
-				cout << "No growth direction assigned" << endl;
-				exit(1);
+			else{
+				//counter++;
+				new_equi_angle = circle_angle;
+	
 			}
 			
+					
 			
-			//this was an idea to make the round part of the cell
-			//smaller in radius but not necessary
-			//if(new_equi_angle != pi) {
-			//	new_equi_angle =  (counter*2-2)*pi/(counter*2);
-			//}
-			walls.at(i)->update_Equi_Angle(new_equi_angle);
+		//this was an idea to make the round part of the cell
+		//smaller in radius but not necessary
+		//if(new_equi_angle != pi) {
+		//	new_equi_angle =  (counter*2-2)*pi/(counter*2);
+		//}
+	
+		walls.at(i)->update_Equi_Angle(new_equi_angle);
+		}
+	}
+	return;
+}
+void Cell::update_Wall_Equi_Angles_Div() {
+	//cout << "equi angles" << endl;
+	vector<shared_ptr<Wall_Node>> walls;
+	this->get_Wall_Nodes_Vec(walls);
+	#pragma omp parallel 
+	{
+        	double theta = 0;
+        	double costheta = 0;
+		double curr_len = 0;
+		double growth_len = 0;
+		Coord curr_vec;	
+		//int counter = 0;
+		double new_equi_angle = 0; 
+		double circle_angle  = (this->num_wall_nodes-2)*pi/(this->num_wall_nodes);
+	
+		#pragma omp parallel for schedule(static,1)
+		for(unsigned int i = 0; i < walls.size();i++) {	
+			curr_vec = walls.at(i)->get_Left_Neighbor()->get_Location() - walls.at(i)->get_Location();
+			curr_len = curr_vec.length();	
+			growth_len = this->growth_direction.length();
+			costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+			theta = acos( min( max(costheta,-1.0), 1.0) );
+			if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
+				new_equi_angle = circle_angle;
+			}
+			else{
+				//counter++;
+				new_equi_angle = circle_angle;
+	
+			}
+		//this was an idea to make the round part of the cell
+		//smaller in radius but not necessary
+		//if(new_equi_angle != pi) {
+		//	new_equi_angle =  (counter*2-2)*pi/(counter*2);
+		//}
+	
+		walls.at(i)->update_Equi_Angle(new_equi_angle);
+
 		}
 	}
 	return;
@@ -504,9 +572,10 @@ void Cell::update_Linear_Bending_Springs(){
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
 	//double new_damping = this->get_Damping();
-        double k_lin = 0;
+        //double k_lin = 0;
 	double k_bend = 0;
-	double l_thresh = 0;
+	//double l_thresh = 0;
+
         for(unsigned int i = 0; i < walls.size();i++) {	
 		//walls.at(i)->set_Damping(new_damping);
 		//walls.at(i)->set_membr_len(MembrEquLen);
@@ -569,11 +638,10 @@ void Cell::update_Neighbor_Cells() {
 
 	return;
 }
-//this function finds the closest node on a neighboring cell to each wall node
-//if there is such a node that is under the AHThresh distance
-//calls find closest node on each wall node of the given cell
-//calls make connection on each wall node of the given cell
-void Cell::update_adhesion_springs_tissue() {
+//each cell wall node holds a vector of adhesion 
+//connections and this function clears that for
+//all cell wall nodes in the cell
+void Cell::clear_adhesion_vectors() {
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
 	#pragma omp parallel
@@ -581,68 +649,51 @@ void Cell::update_adhesion_springs_tissue() {
 
 		#pragma omp for schedule(static,1)	
 		for(unsigned int i=0; i< walls.size();i++) {
-			walls.at(i)->set_Closest(NULL, 100);
-			walls.at(i)->clear_adh_vec();
+			walls.at(i)->clear_adhesion_vec();
 		}
 	}
-	int counter;
-	vector<shared_ptr<Cell>> neighbors;
-	this->get_Neighbor_Cells(neighbors);
-	//cout << "cleared" << endl;
-	//#pragma omp parallel 
-	//{
-		//shared_ptr<Wall_Node> curr_closest;
-		//#pragma omp for schedule(static,1)
-		for(unsigned int i=0; i < walls.size(); i++) {
-			//finds the closest node on neighboring cells 
-			//to the current wall node
-			//counter++;
-			//cout<< counter << endl;
-		       //cout << "Wall node" << walls.at(i) << endl;
-			shared_ptr<Wall_Node> curr_closest = NULL;
-			curr_closest = walls.at(i)->find_Closest_Node(neighbors);
-			//cout << "found closest" << curr_closest<<endl;
-			walls.at(i)->make_Connection(curr_closest);
-			//cout << "made connection" << endl;
-		}	
-	//}
 	return;
 }
-void Cell::update_adhesion_springs_individual() {
-	vector<shared_ptr<Wall_Node>> walls;
-	this->get_Wall_Nodes_Vec(walls);
-	#pragma omp parallel
-	{	
-
-		#pragma omp for schedule(static,1)	
-		for(unsigned int i=0; i< walls.size();i++) {
-			//cout << "Reset null" << endl;
-			walls.at(i)->set_Closest(NULL,100);
-			//cout << "remove from adh vec" << endl;
-			walls.at(i)->remove_from_adh_vec();
-		}
-	}
+//for each cell wall node on current cell 
+//this function searches through all the cell wall nodes on neighboring cells
+//if a cell wall node on a neighboring cell is within the ADHthresh
+//this function updates adhesion vector which is a private
+//member variable for each cell wall node on the current cell
+//this function pushes the current wall node on the neighboring cell
+//onto adhesion vector
+void Cell::update_adhesion_springs() {
+	//get wall nodes for this cell
+	vector<shared_ptr<Wall_Node>> current_cell_walls;
+	this->get_Wall_Nodes_Vec(current_cell_walls);
+	vector<shared_ptr<Wall_Node>> nghbr_walls_total;
+	vector<shared_ptr<Wall_Node>> nghbr_walls_current;
+	//int counter;
+	//get all neighboring cells to this cell
 	vector<shared_ptr<Cell>> neighbors;
 	this->get_Neighbor_Cells(neighbors);
-	//cout << "cleared" << endl;
-	//int counter = 0;	
+	for(unsigned int i = 0; i < neighbors.size(); i++) {
+		neighbors.at(i)->get_Wall_Nodes_Vec(nghbr_walls_current);
+		nghbr_walls_total.insert(nghbr_walls_total.end(), nghbr_walls_current.begin(), nghbr_walls_current.end());
+	}
 	//#pragma omp parallel 
 	//{
-		//shared_ptr<Wall_Node> curr_closest;
 		//#pragma omp for schedule(static,1)
-		for(unsigned int i=0; i < walls.size(); i++) {
-			//finds the closest node on neighboring cells 
-			//to the current wall node
+		for(unsigned int i=0; i < current_cell_walls.size(); i++) {
 			//counter++;
 			//cout<< counter << endl;
-		       	//cout << "Wall node" << walls.at(i) << endl;
-			shared_ptr<Wall_Node> curr_closest = NULL;
-			curr_closest = walls.at(i)->find_Closest_Node(neighbors);
-			//cout << "found closest" << curr_closest<<endl;
-			walls.at(i)->make_Connection(curr_closest);
-			//cout << "made connection" << endl;
-		}	
+		        //cout << "Wall node" << current_cell_walls.at(i) << endl;
+			current_cell_walls.at(i)->make_connection(nghbr_walls_total);
+			//cout << "connection made" << endl;
+		}
 	//}
+	//for all cell wall nodes
+	//look at adh vector, is a nodes is in the curr cell wall
+	//nodes adh vector make sure the current cell wall node
+	//is in that nodes adh vector
+	for(unsigned int i = 0; i < current_cell_walls.size(); i++) {
+		current_cell_walls.at(i)->one_to_one_check();
+
+	}
 	return;
 }
 //===============================================================
@@ -704,6 +755,9 @@ void Cell::update_Node_Locations() {
 	//update cell_Center
 	update_Cell_Center();
 	//update wall_angles
+	if((this->life_length == 2000)) {
+	update_Wall_Equi_Angles();
+	}
 	update_Wall_Angles();
 	//cout << "done" << endl;
 	return;
@@ -716,17 +770,21 @@ void Cell::update_Node_Locations() {
 void Cell::update_Cell_Progress(int& Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
-
+	if(Ti<=80000){
 	if((Ti%growth_rate == (growth_rate -1))){
 		this->add_Cyt_Node();
 	  	this->Cell_Progress++;
 	}
-	return;
+	}
+
+return;
 }
 void Cell::division_check(){
 	vector<shared_ptr<Cell>> neighbor_cells;
-	cout <<"Before div progress" << Cell_Progress << endl;	
+	//cout <<"Before div progress" << Cell_Progress << endl;	
 	if(this->Cell_Progress >= 30){
+
+
 		cout << "dividing" << endl;
 		//orientation of division should be 
 		//fed to the division  function here
@@ -760,15 +818,15 @@ void Cell::division_check(){
 		//growth rate in div function
 		//growth direction inherited in div function
 		//left corner in divison function  
-		cout << "adhesion division" << endl;
+		//cout << "adhesion division" << endl;
 		new_Cell->update_Neighbor_Cells();
-		new_Cell->update_adhesion_springs_individual();
-		//this->update_Neighbor_Cells();
-		//this->update_adhesion_springs_individual();
+		//new_Cell->update_adhesion_springs_individual();
 		new_Cell->get_Neighbor_Cells(neighbor_cells);
 		for(unsigned int i =0; i < neighbor_cells.size(); i++) {
 			neighbor_cells.at(i)->update_Neighbor_Cells();
-			neighbor_cells.at(i)->update_adhesion_springs_individual();
+			neighbor_cells.at(i)->clear_adhesion_vectors();
+			neighbor_cells.at(i)->update_adhesion_springs();
+
 		}
 	}
 	return;
@@ -803,12 +861,13 @@ void Cell::delete_wall_Node_Check(int Ti){
 	return;
 }
 void Cell::add_Wall_Node(int Ti) {
-	//find node to the right of largest spring
+
+//find node to the right of largest spring
 	shared_ptr<Cell> this_cell= shared_from_this();
 	shared_ptr<Wall_Node>right;
-	cout  << "Find largest length" << endl;
+	//cout  << "Find largest length" << endl;
 	find_Largest_Length(right);
-	cout << "Largest found" << endl;
+	//cout << "Largest found" << endl;
 	shared_ptr<Wall_Node> left;
 	Coord location;
 	double l_thresh;
@@ -816,7 +875,7 @@ void Cell::add_Wall_Node(int Ti) {
 	double k_bend;
 	if(this->life_length>2000){	
 	if(right != NULL) {
-		//find location and set neighbors for new node
+//find location and set neighbors for new node
 		left = right->get_Left_Neighbor();
 		location  = (right->get_Location() + left->get_Location())*0.5;
 		shared_ptr<Wall_Node> added_node = make_shared<Wall_Node>(location, this_cell, left, right);
@@ -836,9 +895,17 @@ void Cell::add_Wall_Node(int Ti) {
 		//adhesion for the new node
 		vector<shared_ptr<Cell>> neighbors;
 		this->get_Neighbor_Cells(neighbors);
-		shared_ptr<Wall_Node>curr_closest=added_node->find_Closest_Node(neighbors);
-		added_node->make_Connection(curr_closest);
+		//cout << "adh added node find closest" << endl;
+		vector<shared_ptr<Wall_Node>> nghbr_walls_total;
+		vector<shared_ptr<Wall_Node>> nghbr_walls_current;
+		for(unsigned int i = 0; i < neighbors.size(); i++) {
+			neighbors.at(i)->get_Wall_Nodes_Vec(nghbr_walls_current);
+			nghbr_walls_total.insert(nghbr_walls_total.end(), nghbr_walls_current.begin(), nghbr_walls_current.end());
+		}
+		added_node->make_connection(nghbr_walls_total);
+		//cout << "adh added node success" << endl;
 		//update angles
+		//should i update k_bennnnndddddd?????
 		update_Wall_Equi_Angles();
 		update_Wall_Angles();
 	}
@@ -850,10 +917,10 @@ void Cell::delete_Wall_Node(int Ti) {
 	shared_ptr<Wall_Node> right = NULL;
 	shared_ptr<Wall_Node> small = NULL;
 	//vector<Cell*>neighbors;
-	vector<shared_ptr<Wall_Node>>adhesion_vec;;
+
 	this->find_Smallest_Length(small);
 	if(small !=NULL) {
-		//cout << "delete initiated" << endl;
+		cout << "delete initiated" << endl;
 		left = small->get_Left_Neighbor();
 		right = small->get_Right_Neighbor();
 	
@@ -864,27 +931,9 @@ void Cell::delete_Wall_Node(int Ti) {
 		}
 		//need to make sure all nodes connected to small
 		//via adhesion are erased
-		vector<shared_ptr<Wall_Node>> small_vec;
-		small_vec = small->get_adhesion_vec();
-		for(unsigned int i = 0; i < small_vec.size(); i++){
-			small_vec.at(i)->set_Closest(NULL,100);
-		
-		}
-		//if small is connected to somone through adhesion
-		if(small->get_Closest() != NULL){
-			//then we need to give this node
-			//a new adhesion pair vector without
-			//small in it
-			vector<shared_ptr<Wall_Node>> temp_vec;
-			shared_ptr<Wall_Node> small_closest =small->get_Closest();
-			temp_vec = small_closest->get_adhesion_vec();
-			small_closest->clear_adh_vec();
-			for(unsigned int i = 0; i< temp_vec.size(); i++){
-				if(temp_vec.at(i) != small) {
-					small_closest->add_adh_pair(temp_vec.at(i));
-				}
-			}
-		}
+		//small->remove_from_adh_vecs();
+		//small->clear_adh_vec();
+
 		//set new neighbors so nothing points at small
 		left->set_Right_Neighbor(right);
 		right->set_Left_Neighbor(left);
@@ -916,23 +965,23 @@ void Cell::find_Smallest_Length(shared_ptr<Wall_Node>& right) {
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
 	double max_len = 100;
-	#pragma omp parallel
-	{
+	//#pragma omp parallel
+	//{
 		shared_ptr<Wall_Node> left_neighbor;
 		double curr_len = 0;
-		#pragma omp for schedule(static,1)
+		//#pragma omp for schedule(static,1)
 		for (unsigned int i = 0; i < walls.size();i++) {
 			left_neighbor = walls.at(i)->get_Left_Neighbor();
 			curr_len = (walls.at(i)->get_Location()-left_neighbor->get_Location()).length();
 			if(curr_len < .05){
 				if(curr_len < max_len) {
-					#pragma omp critical
+					//#pragma omp critical
 					max_len = curr_len;
 					right = walls.at(i);
 				}
 			}
 		}
-	}
+	//}
 	return;
 }
 //finds right neighbor node of largest length on membrane
@@ -960,18 +1009,25 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 		growth_len = 1;
 		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
 		theta = acos( min( max(costheta,-1.0), 1.0) );
-		if((theta < 0.436332) ||(theta > 2.70526)){
+
+		if((theta < ANGLE_FIRST_QUAD) ||(theta > ANGLE_SECOND_QUAD)){
+
 			left_neighbor = walls.at(i)->get_Left_Neighbor();
 			current_len = (walls.at(i)->get_Location()-left_neighbor->get_Location()).length();
 			//if(curr_len > MEMBR_THRESH_LENGTH) {			
 			if(current_len > max_len){
 				max_len = current_len;
 				right = walls.at(i);
-			}
+
+
+			}	
+
 		}
 	}
 	largest = right;
-	return;
+
+return;
+
 }
 void Cell::add_Cyt_Node() {
 	double new_damping = this->get_Damping();
@@ -1004,8 +1060,7 @@ int Cell::update_VTK_Indices(int& id) {
 	do { 
 		curr_wall->update_VTK_Id(id);
 		id++;
-		if(curr_wall->get_Closest()!= NULL) {
-			//cout << "updated" << endl;
+		for(unsigned int i = 0; i < curr_wall->get_adh_vec().size(); i++){
 			rel_cnt++;
 		}
 		curr_wall = curr_wall->get_Left_Neighbor();
@@ -1023,13 +1078,16 @@ void Cell::print_VTK_Adh(ofstream& ofs) {
 	int my_id, nei_id;
 	shared_ptr<Wall_Node> neighbor = NULL;
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
-
+	vector<shared_ptr<Wall_Node>> nodes;
 	do {
-		neighbor = curr_wall->get_Closest();
-		if(neighbor != NULL) {
-			my_id = curr_wall->get_VTK_Id();
-			nei_id = neighbor->get_VTK_Id();
-			ofs << 2 << ' ' << my_id << ' ' << nei_id << endl;
+		for(unsigned int i = 0; i < curr_wall->get_adh_vec().size(); i++){
+			nodes = curr_wall->get_adh_vec();
+			neighbor = nodes.at(i);
+			if(neighbor != NULL) {
+				my_id = curr_wall->get_VTK_Id();
+				nei_id = neighbor->get_VTK_Id();
+				ofs << 2 << ' ' << my_id << ' ' << nei_id << endl;
+			}
 		}
 		curr_wall = curr_wall->get_Left_Neighbor();
 	} while(curr_wall != left_Corner);
@@ -1041,18 +1099,22 @@ void Cell::print_locations(ofstream& ofs) {
 	shared_ptr<Wall_Node> orig = curr_wall;
 	//	cout << "knows left corner" << endl;
 	do {
+
+
 		Coord loc = curr_wall->get_Location();
 		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 <<' '<< 1 << endl;
 		//cout<< "maybe cant do left neighbor" << endl;
 		curr_wall = curr_wall->get_Left_Neighbor();
-		//cout << "did it  " << count << endl;
+	
+	//cout << "did it  " << count << endl;
 	} while (curr_wall != orig);
 	
 	//cout << "walls worked" << endl;
-	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+	/*for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+	
 		Coord loc = cyt_nodes.at(i)->get_Location();
 		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 << 0 << endl;
-	}
+	}*/
 	return;
 }
 
@@ -1209,6 +1271,23 @@ void Cell::print_VTK_Scalars_Total(ofstream& ofs) {
 	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
 		double concentration = cyt_nodes.at(i)->get_My_Cell()->get_total_concentration();
 		ofs << concentration << endl;
+	}
+	return;
+}
+
+void Cell::print_VTK_Vectors(ofstream& ofs) {
+
+	Wall_Node* curr_wall = left_Corner;
+	do {
+		Coord force = curr_wall->get_CytForce();
+		ofs << force.get_X() << ' ' << force.get_Y() << ' ' << 0 << endl;
+
+		curr_wall = curr_wall->get_Left_Neighbor();
+		
+	} while(curr_wall != left_Corner);
+
+	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+		Coord force = cyt_nodes.at(i)->get_Force();
 	}
 	return;
 }

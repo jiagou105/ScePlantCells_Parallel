@@ -28,7 +28,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		Tissue* my_tissue;
 		int rank;
 		int layer;
-		//int boundary;
+		int boundary;
 		double damping;
 		int life_length;
 		int num_cyt_nodes;
@@ -108,8 +108,10 @@ class Cell: public enable_shared_from_this<Cell> {
 		double compute_membr_thresh(shared_ptr<Wall_Node> current);
 		double compute_k_lin(shared_ptr<Wall_Node> current);
 		double compute_k_bend(shared_ptr<Wall_Node> current);
+		double compute_k_bend_div(shared_ptr<Wall_Node> current);
 		void update_Wall_Angles();
 		void update_Wall_Equi_Angles();
+		void update_Wall_Equi_Angles_Div();
 		//this function is not in use
 		void update_Linear_Bending_Springs();	
 		
@@ -117,9 +119,9 @@ class Cell: public enable_shared_from_this<Cell> {
 		void update_Neighbor_Cells();
 		
 		//adhesion
-		void update_adhesion_springs_tissue();
-		void update_adhesion_springs_individual();
-	
+		void clear_adhesion_vectors();
+		void update_adhesion_springs();
+
 		//Forces and Positionsing
 		void calc_New_Forces(int Ti);
 		void update_Node_Locations();
@@ -138,7 +140,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void add_Cyt_Node();
 		
 		//Functions for Division
-		shared_ptr<Wall_Node> find_nodes_for_div_plane(Coord& orientation);
+		void find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes);
 		void move_cyt_nodes(Coord center_pt);
 	
 		//Output Functions

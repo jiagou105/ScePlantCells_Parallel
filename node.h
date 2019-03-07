@@ -77,11 +77,8 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord cyt_force;
 		
 		//variables used for adhesion
-		shared_ptr<Wall_Node> closest;
-		double closest_len;
-		vector<shared_ptr<Wall_Node>> adhesion_pairs;
-
-    public:
+		vector<shared_ptr<Wall_Node>> adhesion_vector;
+   public:
     //function that you want performed on all wall nodes
 		
     		// Constructors
@@ -119,16 +116,14 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord get_CytForce() {return cyt_force;}
 	
 		//Adhesion functions
-		shared_ptr<Wall_Node> find_Closest_Node(vector<shared_ptr<Cell>> neighbors);
-		void make_Connection(shared_ptr<Wall_Node> curr_Closest);
-		void set_Closest(shared_ptr<Wall_Node> closest, double closest_len);
-		shared_ptr<Wall_Node> get_Closest(){return closest;}
-		double get_closest_len() {return closest_len;}
-		void add_adh_pair(shared_ptr<Wall_Node> pair);
-		vector<shared_ptr<Wall_Node>>get_adhesion_vec(){return adhesion_pairs;}
-      		void clear_adh_vec();
-		void remove_from_adh_vec();	
-		void clear_closest_in_adh_vec();
+
+		void make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls);
+		void one_to_one_check();
+		vector<shared_ptr<Wall_Node>>get_adh_vec(){return adhesion_vector;}
+      		void clear_adhesion_vec();
+		void remove_from_adh_vecs();	
+		void adh_push_back(shared_ptr<Wall_Node> neighbor_node);
+		void update_adh_vec(shared_ptr<Wall_Node> node);
 		//functions for calculating forces
 		void calc_Forces(int Ti);
 		Coord calc_Morse_SC(int Ti);

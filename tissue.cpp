@@ -15,7 +15,8 @@
 #include "tissue.h"
 //=========================
 // Public Member Functions for Tissue.cpp
-
+//tissue constructor makes new tissue from 
+//.txt file that is read in
 Tissue::Tissue(string filename) {
 	num_cells = 0;
 	ifstream ifs(filename.c_str());
@@ -59,7 +60,8 @@ Tissue::Tissue(string filename) {
 			ss >> boundary;
 		}
 		else if (temp == "End_Cell") {
-			//create new cell with collected data and push onto vector 
+			//create new cell with collected data 
+			//and push onto vector that holds all cells in tissue 
 			//cout<< "making a cell" << endl;
 			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary);
 			//give that cell wall nodes and internal nodes
@@ -91,7 +93,7 @@ void Tissue::update_Num_Cells(shared_ptr<Cell>& new_Cell) {
 	cells.push_back(new_Cell);
 	return;
 }
-//**********function for tissue to perform on cells********//
+//**********functions for tissue to perform on cells********//
 //updates current neighbors of each cell
 void Tissue::update_Neighbor_Cells() {
 	//update vectors of neighboring cells
@@ -115,7 +117,8 @@ void Tissue::delete_Wall(int Ti) {
 	for (unsigned int i = 0; i < cells.size(); i++) {
 //		cout<< "Wall Count Cell " << i << ": " << cells.at(i)->get_wall_count() << endl;
 		
-		cells.at(i)->delete_Wall_Node(Ti);
+//		cells.at(i)->delete_Wall_Node(Ti);
+
 
 //		cout<< "Wall Count Cell " << i << ": " << this->cells.at(i)->get_wall_count() << endl;
 	}
@@ -123,10 +126,14 @@ void Tissue::delete_Wall(int Ti) {
 }
 //updates adhesion springs for each cell
 void Tissue::update_Adhesion() {
-	#pragma omp parallel for schedule(static,1)
+	//#pragma omp parallel for schedule(static,1)
 	for(unsigned int i=0;i<cells.size();i++) {
-		//cout << "Updating adhesion for cell" << endl;
-		cells.at(i)->update_adhesion_springs_tissue();
+
+		//cout << "Updating adhesion for cell" << i <<  endl;
+		cells.at(i)->clear_adhesion_vectors();
+	}
+	for(unsigned int i=0;i<cells.size();i++) {
+		cells.at(i)->update_adhesion_springs();
 	}
 	return;
 }
@@ -144,14 +151,18 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	int number_cells = cells.size();
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
-//		cout << "updating cell" << i << endl;
+
+		//cout << "updating cell" << i << endl;
+
 		cells.at(i)->update_Cell_Progress(Ti);
 	}
 	//cout << "Number cells is: " << cells.size() << endl;
 	return;
+
 }
 void Tissue::division_check(){
 	int number_cells = cells.size();
+	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cout << "updating cell" << i << endl;
 		cells.at(i)->division_check();
@@ -165,11 +176,9 @@ void Tissue::calc_New_Forces(int Ti) {
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		
-//		cout << "Calc forces for cell: " << i << endl;
-		
+		//cout << "Calc forces for cell: " << i << endl;
 		cells.at(i)->calc_New_Forces(Ti);
-		
-//		cout << "success for cell: " << i << endl;
+		//cout << "success for cell: " << i << endl;
 	
 	}
 	return;
@@ -180,6 +189,7 @@ void Tissue::update_Cell_Locations() {
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->update_Node_Locations();
 	}
+
 	return;
 }
 
@@ -187,7 +197,8 @@ void Tissue::locations_output(ofstream& ofs){
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_locations(ofs);
 	}
-	return;
+
+return;
 }
 void Tissue::nematic_output(ofstream& ofs){
 	Coord average;
@@ -343,7 +354,8 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << endl;
 
 
-	/*ofs << "POINT_DATA " << num_Points << endl;
+
+	ofs << "POINT_DATA " << num_Points << endl;
 	ofs << "SCALARS WUS  double " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
@@ -357,13 +369,14 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);
 	}
-	ofs << endl;*/
+	ofs << endl;
 
-	//ofs << "Scalars wall_pressure float" << endl;
-	//ofs << "LOOKUP_TABLE default" << endl;
-	//for (unsigned int i = 0; i < cells.size(); i++) {
-	//	cells.at(i)->print_VTK_Scalars_Node(ofs);
-	//}
+
+	ofs << "Scalars wall_pressure float" << endl;
+	ofs << "LOOKUP_TABLE default" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Scalars_Node(ofs);
+	}
 	return;
 }
 
