@@ -9,9 +9,9 @@
 #SBATCH -p batch
 
 export OMP_NUM_THREADS 48
-mkdir Animate_test_62
+mkdir Animate_test_1
 mkdir Nematic_test_1       
 mkdir Locations_test_1         
-./program Animate_test_62 Locations_test_1 Nematic_test_1                                  
+./program Animate_test_1 Locations_test_1 Nematic_test_1                                  
                       
 
