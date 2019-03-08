@@ -4,8 +4,8 @@
 #SBATCH --cpus-per-task=48
 #SBATCH --mem-per-cpu=2G
 #SBATCH --time=0-12:00:00
-#SBATCH --output=my62.stdout
-#SBATCH --job-name="test_62"
+#SBATCH --output=my8.stdout
+#SBATCH --job-name="test_8"
 #SBATCH -p batch
 
 export OMP_NUM_THREADS 48

@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
 	string locations_folder = argv[3];
 	//keep track of time
 	int start = clock();	
+
 	//.txt file that tells initial
 	//cell configuration 
 	string init_tissue = "OneCell.txt";

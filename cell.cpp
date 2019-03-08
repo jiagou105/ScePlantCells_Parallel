@@ -27,8 +27,7 @@ Cell::Cell(Tissue* tissue) {
 	my_tissue = tissue;
 	//rank assigned in division function
 	//layer inherited from parent	
-	//boundary need to think about the best
-	//way to do this
+	//boundary cells don't divide
 	//damping assigned in div function
 	//just divided so reset life length
 	life_length = 0;
@@ -50,7 +49,7 @@ Cell::Cell(Tissue* tissue) {
 }
 //this constructor is used to initialize first set of cells
 //calls set_growth_rate which detemrines growth rate based on WUS CONC
-Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary)    {
+Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem)    {
 	this->my_tissue = tiss;
 	this->rank = rank;
 	this->layer = layer;
@@ -58,9 +57,10 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//then the cell will have higher damping
 	//which is assigned below
 	//boundary conditions are read in from initial text file
-	//this->boundary = boundary
+	this->boundary = boundary;
+	this-> stem = stem;
 	//set damping for cells that act as anchor points
-	if(boundary == 6) {
+	if(stem == 1) {
 		this->damping = BOTTOM_DAMP;
 	}
 	else if((this->boundary == 1)){
@@ -77,25 +77,31 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//calls the make nodes function on each new cell
 	num_wall_nodes = 0;
 	Cell_Progress = unifRandInt(0,10);
+	if((this->stem == 1 ) || (this->boundary == 1)){
+		Cell_Progress = 15;
+	}
 	this->cell_center = center;
 	this->calc_WUS();
 	this->calc_CK();
 	this->set_growth_rate();
-	if((this->layer == 1)||(this->layer == 2)) {
+	if(this->boundary == 1){
+		this->growth_direction = Coord(0,0);
+	}
+	else if(this->stem == 1){
+		this->growth_direction = Coord(0,1);
+	}
+        
+	else if((this->layer == 1)||(this->layer == 2)) {
                  this->growth_direction = Coord(1,0);
         }
-        //else if(this->cytokinin > 100) {
-          //       this->growth_direction = Coord(0,1);
-        //}
-	else {
+        else{
 	 	this->growth_direction = Coord(0,1);
 	}
-	//if((this->boundary == 6) || (this->boundary == 1)){
-	 //	this->growth_direction = Coord(0,0);
-	//}
-	
-	//cout << "layer" << this->layer << endl;
-	//cout << "gd" << this->growth_direction << endl;
+	cout << "layer" << this->layer << endl;
+	cout << "stem" << this->stem << endl;
+	cout << "boundary" << this-> boundary << endl;
+	cout << "gd" << this->growth_direction << endl;
+	cout << "damping" << this->damping << endl;
 	//neighbors update function called after initialization
 	//left corner set in make nodes function called by tissue constuctor
 }
@@ -182,9 +188,6 @@ void Cell::make_nodes(double radius){
 
 	//insert cytoplasm nodes
 	int num_init_cyt_nodes = Init_Num_Cyt_Nodes + Cell_Progress;
-	if(this->boundary != 100){
-		num_init_cyt_nodes = 30;
-	}
 	this->Cell_Progress = num_init_cyt_nodes;
 	double scal_x_offset = 0.8;
 	//Coord location;
@@ -271,7 +274,7 @@ void Cell::update_Cell_Progress() {
 	return;
 }
 void Cell::calc_WUS() {
-	this->wuschel = 109.6*exp(-0.02928*(cell_center-Coord(0,-32)).length()) + 27.69*exp(-0.0008808*(cell_center-Coord(0,32)).length());
+	this->wuschel = 109.6*exp(-0.02928*(cell_center-Coord(0,-24)).length()) + 27.69*exp(-0.0008808*(cell_center-Coord(0,-24)).length());
 	return;
 }
 void Cell::calc_CK() {
@@ -280,12 +283,6 @@ void Cell::calc_CK() {
 }
 void Cell::set_growth_rate() {
 	//this->growth_rate = 2000;//unifRandInt(1000,2000);
-	/*if(this->layer == 1) {
-		this->growth_rate = 4500;
-	}
-	else{
-		this->growth_rate = 4500;
-	}*/
 	if(this->wuschel < 12){
 		this->growth_rate = unifRandInt(2000,3000);
 	}
@@ -407,6 +404,7 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 		exit(1);
 	}
 	double k_bend = 0;
+
        	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
 		double theta = 0;
         	double costheta = 0;
@@ -429,7 +427,7 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	else{
 		k_bend = K_BEND_UNIFORM;
 	}
-	//cout << "K bend: " << k_bend << endl;
+	cout << "K bend: " << k_bend << endl;
 	return k_bend;
 }
 double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
@@ -603,6 +601,7 @@ void Cell::update_Linear_Bending_Springs(){
         //double k_lin = 0;
 	double k_bend = 0;
 	//double l_thresh = 0;
+
         for(unsigned int i = 0; i < walls.size();i++) {	
 		//walls.at(i)->set_Damping(new_damping);
 		//walls.at(i)->set_membr_len(MembrEquLen);
@@ -719,6 +718,7 @@ void Cell::update_adhesion_springs() {
 	//is in that nodes adh vector
 	for(unsigned int i = 0; i < current_cell_walls.size(); i++) {
 		current_cell_walls.at(i)->one_to_one_check();
+
 	}
 	return;
 }
@@ -796,19 +796,32 @@ void Cell::update_Node_Locations() {
 void Cell::update_Cell_Progress(int& Ti) {
 	//update life length of the current cell
 	this->update_Life_Length();
-	if(Ti<=80000){
+	if(this->stem == 1){
+		//do nothing
+	}
+	else if (this->boundary == 1){
+		//do nothing
+	}
+	else if(Ti<=80000){
 		if((Ti%growth_rate == (growth_rate -1))){
 			this->add_Cyt_Node();
 	  		this->Cell_Progress++;
 		}
 	}
 
-return;
+	return;
 }
 void Cell::division_check(){
 	vector<shared_ptr<Cell>> neighbor_cells;
 	//cout <<"Before div progress" << Cell_Progress << endl;	
-	if(this->Cell_Progress >= 30){
+	if(this-> stem ==1){
+		//do nothing
+	}
+	else if(this->boundary == 1){
+		//do nothing
+	}
+	else if(this->Cell_Progress >= 30){
+
 
 		cout << "dividing" << endl;
 		//orientation of division should be 
@@ -851,6 +864,7 @@ void Cell::division_check(){
 			neighbor_cells.at(i)->update_Neighbor_Cells();
 			neighbor_cells.at(i)->clear_adhesion_vectors();
 			neighbor_cells.at(i)->update_adhesion_springs();
+
 		}
 	}
 	return;
@@ -899,7 +913,6 @@ void Cell::add_Wall_Node(int Ti) {
 	double k_bend;
 	if(this->life_length>2000){	
 	if(right != NULL) {
-
 //find location and set neighbors for new node
 		left = right->get_Left_Neighbor();
 		location  = (right->get_Location() + left->get_Location())*0.5;
@@ -942,6 +955,7 @@ void Cell::delete_Wall_Node(int Ti) {
 	shared_ptr<Wall_Node> right = NULL;
 	shared_ptr<Wall_Node> small = NULL;
 	//vector<Cell*>neighbors;
+
 	this->find_Smallest_Length(small);
 	if(small !=NULL) {
 		cout << "delete initiated" << endl;
@@ -957,6 +971,7 @@ void Cell::delete_Wall_Node(int Ti) {
 		//via adhesion are erased
 		//small->remove_from_adh_vecs();
 		//small->clear_adh_vec();
+
 		//set new neighbors so nothing points at small
 		left->set_Right_Neighbor(right);
 		right->set_Left_Neighbor(left);
@@ -1032,6 +1047,7 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 		growth_len = 1;
 		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
 		theta = acos( min( max(costheta,-1.0), 1.0) );
+
 		//if((theta < ADD_WALL_NODE_ANGLE_FIRST_QUAD) ||(theta > ADD_WALL_NODE_ANGLE_SECOND_QUAD)){
 			left_neighbor = walls.at(i)->get_Left_Neighbor();
 			current_len = (walls.at(i)->get_Location()-left_neighbor->get_Location()).length();
@@ -1040,6 +1056,7 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 				max_len = current_len;
 				right = walls.at(i);
 
+
 			}	
 
 		//}
@@ -1047,6 +1064,7 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 	largest = right;
 
 return;
+
 }
 void Cell::add_Cyt_Node() {
 	double new_damping = this->get_Damping();

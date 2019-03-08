@@ -33,6 +33,7 @@ Tissue::Tissue(string filename) {
 	int rank;
 	int layer;
 	int boundary;
+	int stem;
 	double radius;
 	Coord center;
 	double x, y;
@@ -59,11 +60,14 @@ Tissue::Tissue(string filename) {
 		else if (temp == "Boundary"){
 			ss >> boundary;
 		}
+		else if(temp == "Stem"){
+			ss >> stem;
+		}
 		else if (temp == "End_Cell") {
 			//create new cell with collected data 
 			//and push onto vector that holds all cells in tissue 
 			//cout<< "making a cell" << endl;
-			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary);
+			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
 			//give that cell wall nodes and internal nodes
 			curr->make_nodes(radius);
 			num_cells++;
@@ -135,7 +139,6 @@ void Tissue::update_Adhesion() {
 	for(unsigned int i=0;i<cells.size();i++) {
 		cells.at(i)->update_adhesion_springs();
 	}
-	
 	return;
 }
 //this function is not in use
@@ -152,7 +155,9 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	int number_cells = cells.size();
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
+
 		//cout << "updating cell" << i << endl;
+
 		cells.at(i)->update_Cell_Progress(Ti);
 	}
 	//cout << "Number cells is: " << cells.size() << endl;
@@ -171,7 +176,6 @@ void Tissue::division_check(){
 	
 //calculates the forces for nodes of  each cell 
 void Tissue::calc_New_Forces(int Ti) {
-
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		
@@ -189,7 +193,7 @@ void Tissue::update_Cell_Locations() {
 		cells.at(i)->update_Node_Locations();
 	}
 
-return;
+	return;
 }
 
 void Tissue::locations_output(ofstream& ofs){
@@ -353,6 +357,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	ofs << endl;
 
 
+
 	ofs << "POINT_DATA " << num_Points << endl;
 	ofs << "SCALARS WUS  double " << 1 << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
@@ -374,7 +379,8 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cells.at(i)->print_VTK_Scalars_Average_Pressure(ofs);
 	}
-	ofs << endl;*/
+	ofs << endl;
+	*/
 
 	ofs << "Scalars wall_pressure float" << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
