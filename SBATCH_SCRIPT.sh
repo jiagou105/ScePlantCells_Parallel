@@ -13,5 +13,3 @@ mkdir Animate_test_1
 mkdir Nematic_test_1       
 mkdir Locations_test_1         
 ./program Animate_test_1 Locations_test_1 Nematic_test_1                                  
-                      
-
