@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 
 	//.txt file that tells initial
 	//cell configuration 
-	string init_tissue = "OneCell.txt";
+	string init_tissue = "OneRing.txt";
 	//cout << "Read in cell starter" << endl;	
 	
 	//instantiate tissue
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 	//cout << "Finished creating Cells" << endl;
 	
 	//parameters for time step
-	double numSteps = 500;
+	double numSteps = 100000;
 	
 	// Variable for dataoutput
 	int digits;

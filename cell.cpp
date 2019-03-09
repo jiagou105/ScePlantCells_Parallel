@@ -283,6 +283,9 @@ void Cell::calc_CK() {
 }
 void Cell::set_growth_rate() {
 	//this->growth_rate = 2000;//unifRandInt(1000,2000);
+	this->growth_rate = unifRandInt(2500,4000);
+
+	/*
 	if(this->wuschel < 12){
 		this->growth_rate = unifRandInt(2000,3000);
 	}
@@ -319,6 +322,7 @@ void Cell::set_growth_rate() {
 	else if(this->wuschel>= 132) {
 		this->growth_rate = unifRandInt(15000,16000);
 	}
+	*/
 
 	return;
 }
