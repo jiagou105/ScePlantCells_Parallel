@@ -43,7 +43,11 @@ int main(int argc, char* argv[]) {
 
 	//.txt file that tells initial
 	//cell configuration 
+<<<<<<< HEAD
 	string init_tissue = "OneRing.txt";
+=======
+	string init_tissue = "one_cell.txt";
+>>>>>>> upstream/master
 	//cout << "Read in cell starter" << endl;	
 	
 	//instantiate tissue
@@ -141,7 +145,7 @@ int main(int argc, char* argv[]) {
 		
 		//cout << "Finished" << endl;
 		// print to dataOutput and vtk files
-		if(Ti%1000==0) {
+		if(Ti%100==0) {
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
 				Number = "0000" + to_string(out);
