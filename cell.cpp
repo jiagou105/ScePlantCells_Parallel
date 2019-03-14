@@ -92,7 +92,9 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	}
         
 	else if((this->layer == 1)||(this->layer == 2)) {
-                 this->growth_direction = Coord(1,0);
+	//Christian:  Apical growth in layer 1 is taken to be Isotropic
+                 //this->growth_direction = Coord(1,0);
+                 this->growth_direction = Coord(0,0);
         }
         else{
 	 	this->growth_direction = Coord(0,0);
