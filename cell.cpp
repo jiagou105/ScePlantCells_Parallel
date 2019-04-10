@@ -1092,7 +1092,8 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 return;
 
 }
-Coord Cell::compute_direction_of_highest_tensile_stress(){
+// Older code 
+/*Coord Cell::compute_direction_of_highest_tensile_stress(){
 	//average position of all cell wall nodes
 	vector<shared_ptr<Wall_Node>> wall_nodes;
 	this->get_Wall_Nodes_Vec(wall_nodes);
@@ -1124,13 +1125,76 @@ Coord Cell::compute_direction_of_highest_tensile_stress(){
 
 	direction_vec = Coord(-average_y,average_x);
 	return direction_vec;
-}
-/*Coord Cell::compute_point_on_line(double t){
-	Coord r_0 = this->get_Cell_Center();
-	Coord v = this->compute_longest_axis();
-	Coord p = Coord(r_0.get_X() + v.get_X()*t, r_0.get_Y() + v.get_Y()*t);
-	return p;
 }*/
+
+
+Coord Cell::compute_direction_of_highest_tensile_stress(){
+	//average position of all cell wall nodes
+	vector<shared_ptr<Wall_Node>> wall_nodes;
+	this->get_Wall_Nodes_Vec(wall_nodes);
+	Coord next_coord;
+	Coord curr_coord;
+	Coord direction_vec(0,0);
+	shared_ptr<Wall_Node> curr = wall_nodes.at(0);
+	shared_ptr<Wall_Node> next;
+	double delta_x = 0;
+	double delta_y = 0;
+	double x = 0;
+	double y = 0;
+	double average_x;
+	double average_y;
+	double min_dist = 0;
+	double curr_dist;
+	int counter = 0;
+	//Distance is equivalent to stress due to constant equilibrium dist.
+	do{
+		next = curr->get_Left_Neighbor();
+		curr_coord = curr->get_Location();
+		next_coord = next->get_Location();
+		curr_dist = (curr_coord - next_coord).length();
+		min_dist = ((min_dist >= curr_dist) ? curr_dist : min_dist);
+		counter++;
+	} while(next != wall_nodes.at(0));
+	// Minimium distance between nodes should never be 0.
+	if (min_dist == 0) { 
+		std::cout << "min_dist = 0, nodes are overlapped" << endl;
+		exit(1);
+	}
+	//Initialize arrays for each node's stress direction and its relative tensile stress
+	Coord * stress_vec =  new Coord [counter];
+	double * stress_mag = new double [counter];
+	for (int i = 0; i < counter; i++) {
+		stress_mag[i] = 0;
+	}
+	shared_ptr<Wall_Node> temp = (curr->get_Left_Neighbor())->get_Left_Neighbor();
+	//Calculate relative stresses based on distance stretched. 
+	for (int j = 0; j < counter; j++) {
+		for (int i = 0; i < 4; i++) {
+			stress_vec[j] = (curr->get_Location() - this->get_Cell_Center()).perpVector();
+			stress_mag[j] = stress_mag[j] + ((temp->get_Right_Neighbor())->get_Location() - temp->get_Location()).length() - min_dist;
+			temp = temp->get_Right_Neighbor();
+		}
+	}
+	double sumstress = 0; 
+	for (int i = 0; i < counter; i++) {
+		sumstress = sumstress + stress_mag[i];
+	}
+	//Calculate Average stresses and average out the fectors.
+	for (int i = 0; i < counter; i++) {
+		direction_vec = direction_vec +  stress_vec[i]*(stress_mag[i] / sumstress);
+	}
+
+	delete stress_vec;
+	delete stress_mag; 
+	return direction_vec;
+}
+
+/*Coord Cell::compute_point_on_line(double t){
+  Coord r_0 = this->get_Cell_Center();
+  Coord v = this->compute_longest_axis();
+  Coord p = Coord(r_0.get_X() + v.get_X()*t, r_0.get_Y() + v.get_Y()*t);
+  return p;
+  }*/
 void Cell::add_Cyt_Node() {
 	double new_damping = this->get_Damping();
 	shared_ptr<Cell> this_cell = shared_from_this();
@@ -1148,7 +1212,7 @@ void Cell::add_Cyt_Node() {
 //===========================================================
 
 void Cell::print_Data_Output(ofstream& ofs) {
-	
+
 	ofs << "This is where data output goes" << endl;
 
 	return;
@@ -1167,10 +1231,10 @@ int Cell::update_VTK_Indices(int& id) {
 		}
 		curr_wall = curr_wall->get_Left_Neighbor();
 	} while (curr_wall != left_Corner);
-	
+
 	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
-			cyt_nodes.at(i)->update_VTK_Id(id);
-			id++;
+		cyt_nodes.at(i)->update_VTK_Id(id);
+		id++;
 	}
 	//cout << "ID after: " << id << endl;
 	return rel_cnt;
@@ -1212,7 +1276,7 @@ void Cell::print_direction_vec(ofstream& ofs){
 	Coord point2 = this->cell_center - sum*.05;
 	ofs << point1.get_X() << ' ' << point1.get_Y() << ' ' << 0 << endl;
 	ofs << point2.get_X() << ' ' << point2.get_Y() << ' ' << 0 << endl;
-	
+
 	return;
 }
 void Cell::print_locations(ofstream& ofs) {
@@ -1227,16 +1291,16 @@ void Cell::print_locations(ofstream& ofs) {
 		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 <<' '<< 1 << endl;
 		//cout<< "maybe cant do left neighbor" << endl;
 		curr_wall = curr_wall->get_Left_Neighbor();
-	
-	//cout << "did it  " << count << endl;
+
+		//cout << "did it  " << count << endl;
 	} while (curr_wall != orig);
-	
+
 	//cout << "walls worked" << endl;
 	/*for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
-	
-		Coord loc = cyt_nodes.at(i)->get_Location();
-		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 << 0 << endl;
-	}*/
+
+	  Coord loc = cyt_nodes.at(i)->get_Location();
+	  ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 << 0 << endl;
+	  }*/
 	return;
 }
 
@@ -1253,42 +1317,42 @@ void Cell::print_VTK_Points(ofstream& ofs, int& count) {
 		count++;
 		//cout << "did it  " << count << endl;
 	} while (curr_wall != orig);
-	
+
 	//cout << "walls worked" << endl;
 	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
 		Coord loc = cyt_nodes.at(i)->get_Location();
 		ofs << loc.get_X() << ' ' << loc.get_Y() << ' ' << 0 << endl;
 		count++;
 	};
-	
+
 	//cout << "points worked" << endl;
 	return;
 }
 /*void Cell::print_VTK_Scalars_Wall_Pressure(ofstream& ofs){
-	this->wall_Pressure();
-	Wall_Node* curr_wall = this->left_Corner;
-	
+  this->wall_Pressure();
+  Wall_Node* curr_wall = this->left_Corner;
 
-	double pressure;
-	do{
-		pressure = curr_wall->get_pressure();
-		curr_wall = curr_wall->get_Left_Neighbor();
-		ofs << pressure << endl;
-	}while(curr_wall!= left_Corner);
-	for(unsigned int i=0; i<cyt_nodes.size(); i++){
-		ofs << 0 << endl;
-	}
-	return;
-}*/
+
+  double pressure;
+  do{
+  pressure = curr_wall->get_pressure();
+  curr_wall = curr_wall->get_Left_Neighbor();
+  ofs << pressure << endl;
+  }while(curr_wall!= left_Corner);
+  for(unsigned int i=0; i<cyt_nodes.size(); i++){
+  ofs << 0 << endl;
+  }
+  return;
+  }*/
 void Cell::print_VTK_Scalars_Average_Pressure(ofstream& ofs) {
 	//float pressure = this->average_Pressure();
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
 	do {
 		//concentration = curr_wall->get_My_Cell()->get_WUS_concentration();
-	//	ofs << pressure << endl;
+		//	ofs << pressure << endl;
 
 		curr_wall = curr_wall->get_Left_Neighbor();
-		
+
 	} while (curr_wall != left_Corner);
 
 
@@ -1296,18 +1360,18 @@ void Cell::print_VTK_Scalars_Average_Pressure(ofstream& ofs) {
 	//	ofs << pressure << endl;
 	//}
 	for(unsigned int i=0;i<cyt_nodes.size();i++){
-	//	ofs<< pressure << endl;
+		//	ofs<< pressure << endl;
 	}
 	return;
 }
 /*void Cell::print_VTK_Scalars_Average_Pressure_cell(ofstream& ofs) {
-	double pressure = this->average_Pressure();
-	for(unsigned int i=0;i<1;i++){
-		ofs << pressure << endl;
-	}
-	return;
-}*/
-	
+  double pressure = this->average_Pressure();
+  for(unsigned int i=0;i<1;i++){
+  ofs << pressure << endl;
+  }
+  return;
+  }*/
+
 void Cell::print_VTK_Scalars_WUS(ofstream& ofs) {
 
 	double concentration = 0;
@@ -1317,7 +1381,7 @@ void Cell::print_VTK_Scalars_WUS(ofstream& ofs) {
 		ofs << concentration << endl;
 
 		curr_wall = curr_wall->get_Left_Neighbor();
-		
+
 	} while (curr_wall != left_Corner);
 
 
@@ -1336,7 +1400,7 @@ void Cell::print_VTK_Scalars_CK(ofstream& ofs) {
 		ofs << concentration << endl;
 
 		curr_wall = curr_wall->get_Left_Neighbor();
-		
+
 	} while (curr_wall != left_Corner);
 
 
@@ -1347,34 +1411,34 @@ void Cell::print_VTK_Scalars_CK(ofstream& ofs) {
 	return;
 }
 /*void Cell::print_VTK_Scalars_WUS_cell(ofstream& ofs) {
-	for(unsigned int i = 0; i < 1; i++) {
-		
-		double concentration = cyt_nodes.at(i)->get_My_Cell()->get_WUS_concentration();
-		
-		ofs << concentration << endl;
-	}
-	return;
-}
-	
-void Cell::print_VTK_Scalars_CYT(ofstream& ofs) {
+  for(unsigned int i = 0; i < 1; i++) {
+
+  double concentration = cyt_nodes.at(i)->get_My_Cell()->get_WUS_concentration();
+
+  ofs << concentration << endl;
+  }
+  return;
+  }
+
+  void Cell::print_VTK_Scalars_CYT(ofstream& ofs) {
 
 //	double concentration = 0;
 
-	shared_ptr<Wall_Node> curr_wall = left_Corner;
-	do {
-		double concentration = curr_wall->get_My_Cell()->get_CYT_concentration();
-		ofs << concentration << endl;
+shared_ptr<Wall_Node> curr_wall = left_Corner;
+do {
+double concentration = curr_wall->get_My_Cell()->get_CYT_concentration();
+ofs << concentration << endl;
 
-		curr_wall = curr_wall->get_Left_Neighbor();
-		
-	} while (curr_wall != left_Corner);
+curr_wall = curr_wall->get_Left_Neighbor();
+
+} while (curr_wall != left_Corner);
 
 
-	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
-		double concentration = cyt_nodes.at(i)->get_My_Cell()->get_CYT_concentration();
-		ofs << concentration << endl;
-	}
-	return;
+for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+double concentration = cyt_nodes.at(i)->get_My_Cell()->get_CYT_concentration();
+ofs << concentration << endl;
+}
+return;
 }*/
 void Cell::print_VTK_Scalars_Node(ofstream& ofs) {
 	shared_ptr<Wall_Node> currW = left_Corner;
@@ -1396,61 +1460,61 @@ void Cell::print_VTK_Scalars_Node(ofstream& ofs) {
 	return;
 }
 /*		   
-void Cell::print_VTK_Scalars_Total(ofstream& ofs) {
+		   void Cell::print_VTK_Scalars_Total(ofstream& ofs) {
 
 //	double concentration = 0;
 
-	Wall_Node* curr_wall = left_Corner;
-	do {
-		double concentration = curr_wall->get_My_Cell()->get_total_concentration();
-		ofs << concentration << endl;
+Wall_Node* curr_wall = left_Corner;
+do {
+double concentration = curr_wall->get_My_Cell()->get_total_concentration();
+ofs << concentration << endl;
 
-		curr_wall = curr_wall->get_Left_Neighbor();
-		
-	} while (curr_wall != left_Corner);
+curr_wall = curr_wall->get_Left_Neighbor();
+
+} while (curr_wall != left_Corner);
 
 
-	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
-		double concentration = cyt_nodes.at(i)->get_My_Cell()->get_total_concentration();
-		ofs << concentration << endl;
-	}
-	return;
+for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+double concentration = cyt_nodes.at(i)->get_My_Cell()->get_total_concentration();
+ofs << concentration << endl;
+}
+return;
 }
 
 void Cell::print_VTK_Vectors(ofstream& ofs) {
 
-	Wall_Node* curr_wall = left_Corner;
-	do {
-		Coord force = curr_wall->get_CytForce();
-		ofs << force.get_X() << ' ' << force.get_Y() << ' ' << 0 << endl;
+Wall_Node* curr_wall = left_Corner;
+do {
+Coord force = curr_wall->get_CytForce();
+ofs << force.get_X() << ' ' << force.get_Y() << ' ' << 0 << endl;
 
-		curr_wall = curr_wall->get_Left_Neighbor();
-		
-	} while(curr_wall != left_Corner);
+curr_wall = curr_wall->get_Left_Neighbor();
 
-	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
-		Coord force = cyt_nodes.at(i)->get_Force();
-	}
-	return;
+} while(curr_wall != left_Corner);
+
+for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+Coord force = cyt_nodes.at(i)->get_Force();
+}
+return;
 }
 
 void Cell::print_VTK_Vectors(ofstream& ofs) {
 
-	Wall_Node* curr_wall = left_Corner;
-	do {
-		Coord force = curr_wall->get_CytForce();
-		ofs << force.get_X() << ' ' << force.get_Y() << ' ' << 0 << endl;
+Wall_Node* curr_wall = left_Corner;
+do {
+Coord force = curr_wall->get_CytForce();
+ofs << force.get_X() << ' ' << force.get_Y() << ' ' << 0 << endl;
 
-		curr_wall = curr_wall->get_Left_Neighbor();
-		
-	} while(curr_wall != left_Corner);
+curr_wall = curr_wall->get_Left_Neighbor();
 
-	for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
-		Coord force = cyt_nodes.at(i)->get_Force();
-		ofs << force.get_X() << ' ' << force.get_Y() << ' ' << 0 << endl;
-	}
+} while(curr_wall != left_Corner);
 
-	return;
+for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
+Coord force = cyt_nodes.at(i)->get_Force();
+ofs << force.get_X() << ' ' << force.get_Y() << ' ' << 0 << endl;
+}
+
+return;
 }*/
 
 

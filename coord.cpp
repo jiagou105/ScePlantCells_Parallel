@@ -111,7 +111,21 @@ ostream& operator<<(ostream& os, const Coord& c) {
 	return os;
 }
 
-
+//Returns a unit-length perpendicular vector to this with nonnegative y component.
+Coord Coord::perpVector() const { 
+	if (x == 0) {
+		if (y == 0) {
+			Coord q(0,0);
+			return q;
+		} else {
+			Coord q(1,0);
+			return q;
+		}
+	} else {
+		Coord q(-y/x,1);
+		return q/q.length();
+	}
+}
 
 
 
