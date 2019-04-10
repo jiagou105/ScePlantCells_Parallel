@@ -1108,14 +1108,15 @@ Coord Cell::compute_direction_of_highest_tensile_stress(){
 	double average_x;
 	double average_y;
 	int counter = 0;
+	//Distance is equivalent to stress due to constant equilibrium dist.
 	do{
 		next = curr->get_Left_Neighbor();
 		curr_coord = curr->get_Location();
 		next_coord = next->get_Location();
 		delta_x = next_coord.get_X() - curr_coord.get_X();
 		delta_y = next_coord.get_Y() - curr_coord.get_Y();
-		x = x+ delta_x;
-		y = y+ delta_x;
+		x = x + delta_x;
+		y = y + delta_x;
 		counter++;
 	} while(next != wall_nodes.at(1));
 	average_x = x/counter;
