@@ -125,6 +125,7 @@ Coord Coord::perpVector() const {
 		Coord q(-y/x,1);
 		return q/q.length();
 	}
+
 }
 
 

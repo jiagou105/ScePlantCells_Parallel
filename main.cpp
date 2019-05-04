@@ -46,6 +46,8 @@ int main(int argc, char* argv[]) {
 	//cell configuration 
 	string init_tissue = "SmallCluster.txt";
 	//cout << "Read in cell starter" << endl;	
+	cout <<  init_tissue << endl;
+
 	
 	//instantiate tissue
 	//new cell and node objects
@@ -76,7 +78,7 @@ int main(int argc, char* argv[]) {
 	ofstream ofs_loc;
 	string locations_Filename;
 	string locations_initial = "/Locations_";
-	int Number3 = 0;
+	// Unused int Number3 = 0;
 	
 	//loop for time steps
 	//which matlab file tells you how many
