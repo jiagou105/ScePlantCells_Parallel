@@ -421,7 +421,10 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	}
 	double k_bend = 0;
 
-	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
+	//This code gives preferred growth direction for the side-view model
+	//by taking preferred growth direction and assigning wall nodes bending stiffness
+	//by their position relative to the plane.
+	/*if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
 		double theta = 0;
 		double costheta = 0;
 		double curr_len = 0;
@@ -442,7 +445,9 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	}
 	else{
 		k_bend = K_BEND_UNIFORM;
-	}
+	}*/
+
+	//For Isotropic growth, the bending springs are baseline set to uniform stiffness.
 	k_bend = K_BEND_UNIFORM;
 	//cout << "K bend: " << k_bend << endl;
 	return k_bend;
@@ -462,7 +467,10 @@ double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
 		exit(1);
 	}
 	double k_bend = 0;
-	if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
+
+	//Code for computing bending stiffness for wall nodes after division.
+	//Since all cells are growing isotropically, this is set to be unifrom.
+	/*if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
 		double theta = 0;
 		double costheta = 0;
 		double curr_len = 0;
@@ -480,10 +488,11 @@ double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
 		else { 
 			k_bend = K_BEND_LOOSE;
 		}
-	}
-	else{
+	} else {
 		k_bend = K_BEND_UNIFORM;
-	}
+	}*/
+
+	k_bend = K_BEND_UNIFORM;
 	//cout << "K bend: " << k_bend << endl;
 	return k_bend;
 }
@@ -593,6 +602,7 @@ void Cell::update_Wall_Equi_Angles_Div() {
 	}
 	return;
 }
+
 void Cell::update_Cell_Center() {
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
@@ -612,6 +622,7 @@ void Cell::update_Cell_Center() {
 	//cout << cell_center<<"center"<< endl;
 	return;
 }
+
 void Cell::update_Linear_Bending_Springs(){
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
