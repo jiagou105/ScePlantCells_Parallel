@@ -24,7 +24,12 @@ class Tissue{
 	private:
 		// We'll need a better data structure for later
 		vector<shared_ptr<Cell>> cells;
+		//Division information data structure.  
+		//Holds the form (Timestep, Dividing cell ancestry, CenterX, CenterY, DivplaneX, DivplaneY).
+		vector<vector<double>> div_info;
+		int numDivs;
 		int num_cells;
+
 	public:
 		Tissue(string filename);
 		void get_Cells(vector<shared_ptr<Cell>>& cells);
@@ -39,7 +44,7 @@ class Tissue{
 		void update_Linear_Bending_Springs();
 		
 		void update_Cell_Cycle(int Ti);
-		void division_check();
+		void division_check(double time);
 		void calc_New_Forces(int Ti);
 		void update_Cell_Locations();
 		

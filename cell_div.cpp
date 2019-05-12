@@ -188,7 +188,8 @@ shared_ptr<Cell> Cell::division() {
 	//	this function will create a sister cell
 	//	and return it to the tissue
 	//cout << "New Cell" << endl;
-	shared_ptr<Cell> sister = make_shared<Cell> (this->my_tissue);
+
+	shared_ptr<Cell> sister = make_shared<Cell> (this->my_tissue, this->rank);
 	sister->set_Layer(this->layer);
 	sister->set_growth_direction(this->get_growth_direction());
 	this->set_growth_rate();
@@ -206,7 +207,11 @@ shared_ptr<Cell> Cell::division() {
 	//else {
 	//	orientation = Coord(1,0);
 	//}
-	orientation = (this->compute_direction_of_highest_tensile_stress()).perpVector();
+	//Old code found the direction cell was stretched and returns its perpendicular.
+	//orientation = (this->compute_direction_of_highest_tensile_stress()).perpVector();
+	//Current code returns plane orientation directly.
+	orientation = this->compute_direction_of_highest_tensile_stress();
+	set_Div_Plane(orientation.get_X(),orientation.get_Y());
 	//finds node on one side of cell
 	vector<shared_ptr<Wall_Node>> nodes;
 	cout << "Nodes before" << nodes.size() << endl;

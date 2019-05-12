@@ -27,6 +27,7 @@ class Cell: public enable_shared_from_this<Cell> {
 	private:
 		Tissue* my_tissue;
 		int rank;
+		int ancestry;
 		int layer;
 		int boundary;
 		int stem;
@@ -39,6 +40,10 @@ class Cell: public enable_shared_from_this<Cell> {
 		double Cell_Progress;
 		Coord cell_center;
 		double cytokinin;
+		double divPlaneX, divPlaneY;
+		vector<vector<double>> shape_tensor;
+		vector<vector<double>> equi_shape_tensor;
+		vector<vector<double>> stress_tensor;
 		double wuschel;
 		int growth_rate;
 		Coord growth_direction;
@@ -46,7 +51,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		shared_ptr<Wall_Node> left_Corner;	
 	public:
 		
-		Cell(Tissue* tissue);
+		Cell(Tissue* tissue, int parent);
 		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem);
 		void make_nodes(double radius);
 		
@@ -90,6 +95,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		//get cell center
 		void update_Cell_Center();
 		Coord get_Cell_Center() {return cell_center;}
+		//get ancestry (Only set in constructor)
+		int get_Ancestry();
 		//set/get WUS conc
 		void calc_WUS();
 		double get_WUS_concentration() {return wuschel;}
@@ -113,6 +120,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void update_Wall_Angles();
 		void update_Wall_Equi_Angles();
 		void update_Wall_Equi_Angles_Div();
+		void set_Div_Plane(double X,double Y);
+		Coord get_Div_Plane();
 		//this function is not in use
 		void update_Linear_Bending_Springs();	
 		
@@ -126,10 +135,14 @@ class Cell: public enable_shared_from_this<Cell> {
 		//Forces and Positionsing
 		void calc_New_Forces(int Ti);
 		void update_Node_Locations();
+		void compute_Shape_Tensor();
+		void compute_Equi_Shape_Tensor();
+		void compute_Stress_Tensor();
+		Coord compute_direction_of_highest_tensile_stress();
 		
 		//Growth of a cell
 		void update_Cell_Progress(int& Ti);
-		void division_check();
+		bool division_check(vector<double>& currDivData);
 		double calc_Area();
 		void add_wall_Node_Check(int Ti);
 		void delete_wall_Node_Check(int Ti);
@@ -138,7 +151,6 @@ class Cell: public enable_shared_from_this<Cell> {
 		
 		void find_Smallest_Length(shared_ptr<Wall_Node>& right);
 		void find_Largest_Length(shared_ptr<Wall_Node>& right);
-		Coord compute_direction_of_highest_tensile_stress();
 		Coord compute_point_on_line(double t);;
 		void add_Cyt_Node();
 		

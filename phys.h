@@ -14,6 +14,7 @@ const double dt = .0003;
 const int Init_Num_Cyt_Nodes = 15;
 const int Init_Wall_Nodes = 100;
 const double pi = acos(-1.0);
+const double EQUI_RADIUS = 5;
 //these are used to control equi angles
 //and bending spring constants
 const double ANGLE_FIRST_QUAD = 0.785398;
@@ -34,6 +35,8 @@ const double K_BEND_LOOSE =4.5433;//12.8128;
 const double K_BEND_UNIFORM = 12;
 const double K_LINEAR_STIFF = 0;
 const double K_LINEAR_LOOSE =280.1636;//54.2730;
+//Shear modulus for stress based plane algorithm.
+const double SHEAR_MODULUS = 1;
 //157.7281;//674.3111;//511.3433;//746.0824;//461.8290;//230.2545;//134.8271;//336.2897;//581.4058;//551.7969;//84.7288;//280.1636;//688.4090;//396.0437;//612.7239;//320.9386;//381.9915;//204.3934;//477.1815;//
 ////Adhesion spring mechanical params
 const double K_ADH = 20;

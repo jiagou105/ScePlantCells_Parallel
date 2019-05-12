@@ -23,12 +23,13 @@
 // Constructors
 // this constructor is used in
 // the divsion function
-Cell::Cell(Tissue* tissue) {
+Cell::Cell(Tissue* tissue, int parent) {
 	my_tissue = tissue;
 	//rank assigned in division function
 	//layer inherited from parent	
 	//boundary cells don't divide
 	boundary = 0;
+	ancestry = parent;
 	//stem cells don't divide 
 	stem = 0;
 	//damping assigned in div function
@@ -55,6 +56,7 @@ Cell::Cell(Tissue* tissue) {
 Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem)    {
 	this->my_tissue = tiss;
 	this->rank = rank;
+	this->ancestry = rank;
 	this->layer = layer;
 	//if boundary is equal to one 
 	//then the cell will have higher damping
@@ -65,11 +67,9 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	//set damping for cells that act as anchor points
 	if(stem == 1) {
 		this->damping = BOTTOM_DAMP;
-	}
-	else if((this->boundary == 1)){
+	} else if((this->boundary == 1)) {
 		this->damping =  BOUNDARY_DAMP;
-	}
-	else{
+	} else {
 		this->damping = REG_DAMP;
 	}
 	life_length = 0;
@@ -87,19 +87,15 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	this->calc_WUS();
 	this->calc_CK();
 	this->set_growth_rate();
-	if(this->boundary == 1){
+	if(this->boundary == 1) {
 		this->growth_direction = Coord(0,0);
-	}
-	else if(this->stem == 1){
+	} else if(this->stem == 1) {
 		this->growth_direction = Coord(0,1);
-	}
-
-	else if((this->layer == 1)||(this->layer == 2)) {
+	} else if((this->layer == 1)||(this->layer == 2)) {
 		//Christian:  Apical growth in layer 1 is taken to be Isotropic
 		//this->growth_direction = Coord(1,0);
 		this->growth_direction = Coord(0,0);
-	}
-	else{
+	} else {
 		this->growth_direction = Coord(0,0);
 	}
 	//cout << "layer" << this->layer << endl;
@@ -115,7 +111,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 //calls compute bending spring constant for each node
 //calls update wall equi angles for each node
 //calls update wall angles to get initial angle of each node
-void Cell::make_nodes(double radius){
+void Cell::make_nodes(double radius) {
 
 	//assemble the membrane
 	int num_Init_Wall_Nodes = Init_Wall_Nodes;
@@ -425,26 +421,26 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	//by taking preferred growth direction and assigning wall nodes bending stiffness
 	//by their position relative to the plane.
 	/*if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
-		double theta = 0;
-		double costheta = 0;
-		double curr_len = 0;
-		double growth_len = 0;
-		Coord curr_vec;	
-		curr_vec = current->get_Left_Neighbor()->get_Location() - current->get_Location();
-		curr_len = curr_vec.length();	
-		growth_len = 1;
-		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
-		theta = acos( min( max(costheta,-1.0), 1.0) );
-		//cout << "Theta: " << theta << endl;
-		if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
-			k_bend = K_BEND_STIFF;
-		}
-		else { 
-			k_bend = K_BEND_LOOSE;
-		}
+	  double theta = 0;
+	  double costheta = 0;
+	  double curr_len = 0;
+	  double growth_len = 0;
+	  Coord curr_vec;	
+	  curr_vec = current->get_Left_Neighbor()->get_Location() - current->get_Location();
+	  curr_len = curr_vec.length();	
+	  growth_len = 1;
+	  costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+	  theta = acos( min( max(costheta,-1.0), 1.0) );
+	//cout << "Theta: " << theta << endl;
+	if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
+	k_bend = K_BEND_STIFF;
+	}
+	else { 
+	k_bend = K_BEND_LOOSE;
+	}
 	}
 	else{
-		k_bend = K_BEND_UNIFORM;
+	k_bend = K_BEND_UNIFORM;
 	}*/
 
 	//For Isotropic growth, the bending springs are baseline set to uniform stiffness.
@@ -471,25 +467,25 @@ double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
 	//Code for computing bending stiffness for wall nodes after division.
 	//Since all cells are growing isotropically, this is set to be unifrom.
 	/*if((growth_direction == Coord(0,1)) || (growth_direction == Coord(1,0))){
-		double theta = 0;
-		double costheta = 0;
-		double curr_len = 0;
-		double growth_len = 0;
-		Coord curr_vec;	
-		curr_vec = current->get_Left_Neighbor()->get_Location() - current->get_Location();
-		curr_len = curr_vec.length();	
-		growth_len = 1;
-		costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
-		theta = acos( min( max(costheta,-1.0), 1.0) );
-		//cout << "Theta: " << theta << endl;
-		if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
-			k_bend = K_BEND_STIFF;
-		}
-		else { 
-			k_bend = K_BEND_LOOSE;
-		}
+	  double theta = 0;
+	  double costheta = 0;
+	  double curr_len = 0;
+	  double growth_len = 0;
+	  Coord curr_vec;	
+	  curr_vec = current->get_Left_Neighbor()->get_Location() - current->get_Location();
+	  curr_len = curr_vec.length();	
+	  growth_len = 1;
+	  costheta = growth_direction.dot(curr_vec)/(curr_len*growth_len);
+	  theta = acos( min( max(costheta,-1.0), 1.0) );
+	//cout << "Theta: " << theta << endl;
+	if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
+	k_bend = K_BEND_STIFF;
+	}
+	else { 
+	k_bend = K_BEND_LOOSE;
+	}
 	} else {
-		k_bend = K_BEND_UNIFORM;
+	k_bend = K_BEND_UNIFORM;
 	}*/
 
 	k_bend = K_BEND_UNIFORM;
@@ -603,6 +599,7 @@ void Cell::update_Wall_Equi_Angles_Div() {
 	return;
 }
 
+//Calculates cell center by computing average vector of wall nodes.
 void Cell::update_Cell_Center() {
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
@@ -621,6 +618,21 @@ void Cell::update_Cell_Center() {
 	this->cell_center = total_location*((1.0/static_cast<double>(num_wall_nodes)));
 	//cout << cell_center<<"center"<< endl;
 	return;
+}
+
+int Cell::get_Ancestry() { 
+	return ancestry; 
+}
+
+void Cell::set_Div_Plane(double X, double Y) { 
+	divPlaneX = X;
+	divPlaneY = Y;
+	return;
+}
+
+Coord Cell::get_Div_Plane(){
+	Coord divPlane(divPlaneX,divPlaneY); 
+	return divPlane;
 }
 
 void Cell::update_Linear_Bending_Springs(){
@@ -644,6 +656,7 @@ void Cell::update_Linear_Bending_Springs(){
 	update_Wall_Equi_Angles();
 	return;
 }
+
 //=============================================================
 //=========================================
 // Keep Track of neighbor cells and Adhesion springs
@@ -753,7 +766,7 @@ void Cell::update_adhesion_springs() {
 }
 //===============================================================
 //============================
-//  Forces and Positioning
+//  Forces, Positioning, and Shape
 //============================
 //===============================================================
 //calls calc_forces
@@ -817,6 +830,113 @@ void Cell::update_Node_Locations() {
 	//cout << "done" << endl;
 	return;
 }
+void Cell::compute_Shape_Tensor() {
+	//Initialize accumulator variable as zeros	
+	vector<vector<double>> temp(2, vector<double>(2));
+	double xc,yc, xk, yk;
+	for (int i = 0; i < 2; i++) {
+		for(int j = 0; j < 2; j++) {
+			temp[i][j] = 0;
+		}
+	}
+	Coord cent = this->get_Cell_Center();
+	vector<shared_ptr<Wall_Node>> walls;
+	this->get_Wall_Nodes_Vec(walls);
+	int wallcount = this->get_wall_count();
+	xc = cent.get_X();
+	yc = cent.get_Y();
+	for (int k = 0; k < wallcount; k++) {
+		xk = walls.at(k)->get_Location().get_X();
+		yk = walls.at(k)->get_Location().get_Y();
+		temp[0][0] += pow(xc-xk,2);
+		temp[1][0] += (xc-xk) * (yc-yk);
+		temp[1][1] += pow(yc-yk,2);
+	}  
+	//The shape tensor matrix is symmetric.
+	temp[0][1] = temp[1][0];
+	//Normalize
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 2; j++) {
+			temp[i][j] = temp[i][j] / static_cast<double>(wallcount);
+		}
+	}
+	shape_tensor = temp;
+	return;
+}
+
+void Cell::compute_Equi_Shape_Tensor() { 
+	int count = this->get_wall_count();
+	double theta = 2*pi/ static_cast<double>(count);
+	//The X and Y vectors represent the artifical vertices of the circular representation
+	//of the cell.
+	vector<double> X;
+	vector<double> Y;
+	for (int i = 0; i < count; i++) {
+		X.push_back(EQUI_RADIUS * cos(theta*static_cast<double>(i)));
+		Y.push_back(EQUI_RADIUS * sin(theta*static_cast<double>(i)));
+	}
+	vector<vector<double>> temp(2, vector<double>(2));
+	for (int i = 0; i < 2; i++) {
+		for(int j = 0; j < 2; j++) {
+			temp[i][j] = 0;
+		}
+	}
+	for (int i = 0; i < count; i++) { 
+		temp[0][0] += pow(X.at(i),2);
+		temp[0][1] += (X.at(i)) * (Y.at(i));
+		temp[1][1] += pow(Y.at(i),2);
+	}
+	temp[1][0] = temp[0][1];
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 2; j++) {
+			temp[i][j] = temp[i][j] / static_cast<double>(count);
+		}
+	}
+	equi_shape_tensor = temp;
+	return;
+}
+
+void Cell::compute_Stress_Tensor() {
+	//Initialize accumulator variable as zeros	
+	this->compute_Equi_Shape_Tensor();
+	vector<vector<double>> temp(2, vector<double>(2));
+	double traceMc0 = equi_shape_tensor[0][0]+equi_shape_tensor[1][1];
+	for (int i = 0; i < 2; i++) {
+		for(int j = 0; j < 2; j++) {
+			temp[i][j] = SHEAR_MODULUS * (shape_tensor[i][j]-equi_shape_tensor[i][j]) / traceMc0;
+		}
+	}
+	return;
+}
+
+Coord Cell::compute_direction_of_highest_tensile_stress(){
+	//average position of all cell wall nodes
+	vector<shared_ptr<Wall_Node>> wall_nodes;
+	this->get_Wall_Nodes_Vec(wall_nodes);
+	Coord max_coord;
+	double max_stress = -1; 
+	Coord curr_coord;
+	double curr_stress, tempX, tempY;
+	for(int i = 0; i < this->get_wall_count(); i++) {
+		Coord curr_coord = wall_nodes.at(i)->get_Location() - this->get_Cell_Center();
+		tempX = curr_coord.get_X() * stress_tensor[0][0] + curr_coord.get_Y() * stress_tensor[0][1];
+		tempY = curr_coord.get_X() * stress_tensor[1][0] + curr_coord.get_Y() * stress_tensor[1][1];
+		Coord temp(tempX,tempY); 
+		curr_stress = curr_coord.dot(temp); 
+		if (curr_stress > max_stress) {
+			max_coord = curr_coord;
+		} else if (curr_stress == max_stress) {
+			double X = unifRand(static_cast<double>(0),static_cast<double>(1));
+			if (X < 0.5) {
+				max_coord = curr_coord;
+			}
+		}
+	}
+	cout << "Completed Stressvec calculation\n";
+	Coord direction_vec = max_coord / max_coord.length();
+	return direction_vec;
+}
+
 //=====================================================================
 //==========================================
 // Growth of Cell
@@ -851,22 +971,30 @@ void Cell::update_Cell_Progress(int& Ti) {
 
 	return;
 }
-void Cell::division_check(){
+//Checks to see if division needs to happen.  If so, pass the data regarding the division back to the 
+//tissue to store for later. Otherwise do nothing. DivData is of the form
+//(Timestep, Dividing cell ancestry, CenterX, Center Y, DivPlaneX, DivPlaneY).
+bool Cell::division_check(vector<double>& currDivData){
 	vector<shared_ptr<Cell>> neighbor_cells;
 	//cout <<"Before div progress" << Cell_Progress << endl;	
-	if(this-> stem ==1){
+	if(this-> stem ==1) {
 		//do nothing
-	}
-	else if(this->boundary == 1){
+	} else if(this->boundary == 1) {
 		//do nothing
-	}
-	else if(this->Cell_Progress >= 30){
-
+	} else if(this->Cell_Progress >= 30) {
 
 		cout << "dividing cell" << this->rank <<  endl;
 		//orientation of division should be 
 		//fed to the division  function here
-		shared_ptr<Cell> new_Cell= this->division();
+		currDivData.push_back(this->get_Ancestry());
+		this->update_Cell_Center();
+		Coord divCenter = get_Cell_Center();
+		currDivData.push_back(divCenter.get_X());
+		currDivData.push_back(divCenter.get_Y());
+		shared_ptr<Cell> new_Cell = this->division();
+		currDivData.push_back(divPlaneX);
+		currDivData.push_back(divPlaneY);
+
 		cout << "division success" << endl;
 		//cout << "Parent cell prog" << Cell_Progress<< endl;
 		//cout << "Sister cell prog" << new_Cell->get_Cell_Progress()<< endl;
@@ -876,14 +1004,14 @@ void Cell::division_check(){
 		new_Cell->set_Rank(this->my_tissue->get_num_cells()-1);
 		//cout << "set rank" << endl;
 		cout << "Parent rank: " << this->rank << endl;
-		cout << "sister rank: " << new_Cell->get_Rank() << endl;
+		cout << "Sister rank: " << new_Cell->get_Rank() << endl;
 		cout << new_Cell->get_wall_count() << endl;
 		cout << new_Cell->get_cyt_count() << endl;
 		cout << this->get_wall_count() << endl;
 		cout << this->get_cyt_count() << endl;
-		cout << "parent" << this << endl;
+		cout << "Parent" << this << endl;
 		cout << "Parent progress: " << this->get_Cell_Progress() << endl;
-		cout << "new cell" << new_Cell << endl;
+		cout << "New cell" << new_Cell << endl;
 		cout << "New progress: " << new_Cell->get_Cell_Progress() << endl;
 
 		//layer in division function		
@@ -910,8 +1038,9 @@ void Cell::division_check(){
 			neighbor_cells.at(i)->update_adhesion_springs();
 
 		}
+		return true;
 	}
-	return;
+	return false;
 }
 
 double Cell::calc_Area() {
@@ -1108,119 +1237,7 @@ void Cell::find_Largest_Length(shared_ptr<Wall_Node>& largest) {
 	return;
 
 }
-// Older code 
-/*Coord Cell::compute_direction_of_highest_tensile_stress(){
-//average position of all cell wall nodes
-vector<shared_ptr<Wall_Node>> wall_nodes;
-this->get_Wall_Nodes_Vec(wall_nodes);
-Coord next_coord;
-Coord curr_coord;
-Coord direction_vec;
-shared_ptr<Wall_Node> curr = wall_nodes.at(0);
-shared_ptr<Wall_Node> next;
-double delta_x = 0;
-double delta_y = 0;
-double x = 0;
-double y = 0;
-double average_x;
-double average_y;
-int counter = 0;
-//Distance is equivalent to stress due to constant equilibrium dist.
-do{
-next = curr->get_Left_Neighbor();
-curr_coord = curr->get_Location();
-next_coord = next->get_Location();
-delta_x = next_coord.get_X() - curr_coord.get_X();
-delta_y = next_coord.get_Y() - curr_coord.get_Y();
-x = x + delta_x;
-y = y + delta_x;
-counter++;
-} while(next != wall_nodes.at(0));
-average_x = x/counter;
-average_y = y/counter;
 
-direction_vec = Coord(-average_y,average_x);
-return direction_vec;
-}*/
-
-
-Coord Cell::compute_direction_of_highest_tensile_stress(){
-	//average position of all cell wall nodes
-	vector<shared_ptr<Wall_Node>> wall_nodes;
-	this->get_Wall_Nodes_Vec(wall_nodes);
-	Coord next_coord;
-	Coord curr_coord;
-	Coord direction_vec(0,0);
-	shared_ptr<Wall_Node> curr = wall_nodes.at(0);
-	shared_ptr<Wall_Node> next = curr;
-	//double min_dist = (curr->get_Location() - (curr->get_Left_Neighbor())->get_Location()).length();
-	//double curr_dist;
-	int counter = 0;
-	cout << "Tensile_stress Do-while start" << endl;
-	//Distance is equivalent to stress due to constant equilibrium dist.
-	do{
-		curr = next;
-		next = curr->get_Left_Neighbor();
-		curr_coord = curr->get_Location();
-		next_coord = next->get_Location();
-		//curr_dist = (curr_coord - next_coord).length();
-		//min_dist = ((min_dist >= curr_dist) ? curr_dist : min_dist);
-		counter++;
-	} while(next != wall_nodes.at(0));
-	cout << "Tensile_stress Do-while end, Counter = " << counter << endl;
-	// Minimium distance between nodes should never be 0.
-	//CHECK
-	counter = this->get_wall_count();
-	/*if (min_dist == 0) { 
-	  std::cout << "min_dist = 0, nodes are overlapped" << endl;
-	  exit(1);
-	  }*/
-	//Initialize arrays for each node's stress direction and its relative tensile stress
-	Coord * stress_vec =  new Coord [counter];
-	double * stress_mag = new double [counter];
-	for (int i = 0; i < counter; i++) {
-		stress_mag[i] = 0;
-	}
-	shared_ptr<Wall_Node> temp = (curr->get_Left_Neighbor())->get_Left_Neighbor();
-	//Calculate relative stresses based on distance stretched. 
-	for (int j = 0; j < counter; j++) {
-		for (int i = 0; i < 4; i++) {
-			stress_vec[j] = (curr->get_Location() - this->get_Cell_Center()).perpVector();
-			//stress_mag[j] = stress_mag[j] + ((temp->get_Right_Neighbor())->get_Location() - temp->get_Location()).length() - min_dist;
-			stress_mag[j] = stress_mag[j] + ((temp->get_Right_Neighbor())->get_Location() - temp->get_Location()).length() - Membr_Equi_Len_Long;
-			temp = temp->get_Right_Neighbor();
-		}
-	}
-	double sumstress = 0; 
-	for (int i = 0; i < counter; i++) {
-		sumstress = sumstress + stress_mag[i];
-	}
-	//Calculate Average stresses and average out the fectors.
-	int alignment;
-	//Calculates the weighted average of vectors.  Alignment requires that 
-	//the vectors are <= 90 degrees away from one another, otherwise we may find
-	//vectors x,y with angle as ~179 degrees as cancelling out instead of contributing
-	//toward the same direction of growth.
-	for (int i = 0; i < counter; i++) {
-		alignment = (direction_vec.dot(stress_vec[i]) >= 0) ? 1 : -1; 
-		direction_vec = direction_vec + stress_vec[i]*alignment*(stress_mag[i] / sumstress);
-		if (direction_vec.get_Y() < 0) {
-			direction_vec = direction_vec * (-1); 
-		}
-	}
-
-	delete stress_vec;
-	delete stress_mag; 
-	cout << "Completed Stressvec calculation\n";
-	return direction_vec;
-}
-
-/*Coord Cell::compute_point_on_line(double t){
-  Coord r_0 = this->get_Cell_Center();
-  Coord v = this->compute_longest_axis();
-  Coord p = Coord(r_0.get_X() + v.get_X()*t, r_0.get_Y() + v.get_Y()*t);
-  return p;
-  }*/
 void Cell::add_Cyt_Node() {
 	double new_damping = this->get_Damping();
 	shared_ptr<Cell> this_cell = shared_from_this();
@@ -1350,21 +1367,7 @@ void Cell::print_VTK_Points(ofstream& ofs, int& count) {
 	//cout << "points worked" << endl;
 	return;
 }
-/*void Cell::print_VTK_Scalars_Wall_Pressure(ofstream& ofs){
-  this->wall_Pressure();
-  Wall_Node* curr_wall = this->left_Corner;
 
-  double pressure;
-  do{
-  pressure = curr_wall->get_pressure();
-  curr_wall = curr_wall->get_Left_Neighbor();
-  ofs << pressure << endl;
-  }while(curr_wall!= left_Corner);
-  for(unsigned int i=0; i<cyt_nodes.size(); i++){
-  ofs << 0 << endl;
-  }
-  return;
-  }*/
 void Cell::print_VTK_Scalars_Average_Pressure(ofstream& ofs) {
 	//float pressure = this->average_Pressure();
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
@@ -1382,13 +1385,6 @@ void Cell::print_VTK_Scalars_Average_Pressure(ofstream& ofs) {
 	}
 	return;
 }
-/*void Cell::print_VTK_Scalars_Average_Pressure_cell(ofstream& ofs) {
-  double pressure = this->average_Pressure();
-  for(unsigned int i=0;i<1;i++){
-  ofs << pressure << endl;
-  }
-  return;
-  }*/
 
 void Cell::print_VTK_Scalars_WUS(ofstream& ofs) {
 
@@ -1428,6 +1424,150 @@ void Cell::print_VTK_Scalars_CK(ofstream& ofs) {
 	}
 	return;
 }
+void Cell::print_VTK_Scalars_Node(ofstream& ofs) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	double color;
+	do {
+		if(currW->get_added()==1){
+			color = 30.0;
+		}
+		else{
+			color = 0.0;
+		}
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+	} while(currW != left_Corner);
+	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+		color = 0.0;
+		ofs << color << endl;
+	}
+	return;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////OLD CODE////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
+/*Coord Cell::compute_direction_of_highest_tensile_stress(){
+	//average position of all cell wall nodes
+	vector<shared_ptr<Wall_Node>> wall_nodes;
+	this->get_Wall_Nodes_Vec(wall_nodes);
+	Coord next_coord;
+	Coord curr_coord;
+	Coord direction_vec(0,0);
+	shared_ptr<Wall_Node> curr = wall_nodes.at(0);
+	shared_ptr<Wall_Node> next = curr;
+	//double min_dist = (curr->get_Location() - (curr->get_Left_Neighbor())->get_Location()).length();
+	//double curr_dist;
+	int counter = 0;
+	cout << "Tensile_stress Do-while start" << endl;
+	//Distance is equivalent to stress due to constant equilibrium dist.
+	do{
+		curr = next;
+		next = curr->get_Left_Neighbor();
+		curr_coord = curr->get_Location();
+		next_coord = next->get_Location();
+		//curr_dist = (curr_coord - next_coord).length();
+		//min_dist = ((min_dist >= curr_dist) ? curr_dist : min_dist);
+		counter++;
+	} while(next != wall_nodes.at(0));
+	cout << "Tensile_stress Do-while end, Counter = " << counter << endl;
+	// Minimium distance between nodes should never be 0.
+	//CHECK
+	counter = this->get_wall_count();*/
+	/*if (min_dist == 0) { 
+	  std::cout << "min_dist = 0, nodes are overlapped" << endl;
+	  exit(1);
+	  } */ 
+	/*//Initialize arrays for each node's stress direction and its relative tensile stress
+	Coord * stress_vec =  new Coord [counter];
+	double * stress_mag = new double [counter];
+	for (int i = 0; i < counter; i++) {
+		stress_mag[i] = 0;
+	}
+	shared_ptr<Wall_Node> temp = (curr->get_Left_Neighbor())->get_Left_Neighbor();
+	//Calculate relative stresses based on distance stretched. 
+	for (int j = 0; j < counter; j++) {
+		for (int i = 0; i < 4; i++) {
+			stress_vec[j] = (curr->get_Location() - this->get_Cell_Center()).perpVector();
+			//stress_mag[j] = stress_mag[j] + ((temp->get_Right_Neighbor())->get_Location() - temp->get_Location()).length() - min_dist;
+			stress_mag[j] = stress_mag[j] + ((temp->get_Right_Neighbor())->get_Location() - temp->get_Location()).length() - Membr_Equi_Len_Long;
+			temp = temp->get_Right_Neighbor();
+		}
+	}
+	double sumstress = 0; 
+	for (int i = 0; i < counter; i++) {
+		sumstress = sumstress + stress_mag[i];
+	}
+	//Calculate Average stresses and average out the fectors.
+	int alignment;
+	//Calculates the weighted average of vectors.  Alignment requires that 
+	//the vectors are <= 90 degrees away from one another, otherwise we may find
+	//vectors x,y with angle as ~179 degrees as cancelling out instead of contributing
+	//toward the same direction of growth.
+	for (int i = 0; i < counter; i++) {
+		alignment = (direction_vec.dot(stress_vec[i]) >= 0) ? 1 : -1; 
+		direction_vec = direction_vec + stress_vec[i]*alignment*(stress_mag[i] / sumstress);
+		if (direction_vec.get_Y() < 0) {
+			direction_vec = direction_vec * (-1); 
+		}
+	}
+
+	delete stress_vec;
+	delete stress_mag; 
+	cout << "Completed Stressvec calculation\n";
+	return direction_vec;
+}*/
+
+/*void Cell::print_VTK_Scalars_Wall_Pressure(ofstream& ofs){
+  this->wall_Pressure();
+  Wall_Node* curr_wall = this->left_Corner;
+
+  double pressure;
+  do{
+  pressure = curr_wall->get_pressure();
+  curr_wall = curr_wall->get_Left_Neighbor();
+  ofs << pressure << endl;
+  }while(curr_wall!= left_Corner);
+  for(unsigned int i=0; i<cyt_nodes.size(); i++){
+  ofs << 0 << endl;
+  }
+  return;
+  }*/
+/*void Cell::print_VTK_Scalars_Average_Pressure_cell(ofstream& ofs) {
+  double pressure = this->average_Pressure();
+  for(unsigned int i=0;i<1;i++){
+  ofs << pressure << endl;
+  }
+  return;
+  }*/
+
 /*void Cell::print_VTK_Scalars_WUS_cell(ofstream& ofs) {
   for(unsigned int i = 0; i < 1; i++) {
 
@@ -1458,25 +1598,48 @@ ofs << concentration << endl;
 }
 return;
 }*/
-void Cell::print_VTK_Scalars_Node(ofstream& ofs) {
-	shared_ptr<Wall_Node> currW = left_Corner;
-	double color;
-	do {
-		if(currW->get_added()==1){
-			color = 30.0;
-		}
-		else{
-			color = 0.0;
-		}
-		ofs << color << endl;
-		currW = currW->get_Left_Neighbor();
-	} while(currW != left_Corner);
-	for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
-		color = 0.0;
-		ofs << color << endl;
-	}
-	return;
-}
+/*Coord Cell::compute_point_on_line(double t){
+  Coord r_0 = this->get_Cell_Center();
+  Coord v = this->compute_longest_axis();
+  Coord p = Coord(r_0.get_X() + v.get_X()*t, r_0.get_Y() + v.get_Y()*t);
+  return p;
+  }*/
+
+
+/*Coord Cell::compute_direction_of_highest_tensile_stress(){
+//average position of all cell wall nodes
+vector<shared_ptr<Wall_Node>> wall_nodes;
+this->get_Wall_Nodes_Vec(wall_nodes);
+Coord next_coord;
+Coord curr_coord;
+Coord direction_vec;
+shared_ptr<Wall_Node> curr = wall_nodes.at(0);
+shared_ptr<Wall_Node> next;
+double delta_x = 0;
+double delta_y = 0;
+double x = 0;
+double y = 0;
+double average_x;
+double average_y;
+int counter = 0;
+//Distance is equivalent to stress due to constant equilibrium dist.
+do{
+next = curr->get_Left_Neighbor();
+curr_coord = curr->get_Location();
+next_coord = next->get_Location();
+delta_x = next_coord.get_X() - curr_coord.get_X();
+delta_y = next_coord.get_Y() - curr_coord.get_Y();
+x = x + delta_x;
+y = y + delta_x;
+counter++;
+} while(next != wall_nodes.at(0));
+average_x = x/counter;
+average_y = y/counter;
+
+direction_vec = Coord(-average_y,average_x);
+return direction_vec;
+}*/
+
 /*		   
 		   void Cell::print_VTK_Scalars_Total(ofstream& ofs) {
 

@@ -55,8 +55,9 @@ int main(int argc, char* argv[]) {
 	Tissue growing_Tissue(init_tissue);
 	//cout << "Finished creating Cells" << endl;
 
-	//parameters for time step
-	double numSteps = 40000;
+	// Amount of time this simulation covers (in seconds)
+	// Recall that 86,400 seconds is 24 hours.
+	double haltTime = 86400;
 
 	// Variable for dataoutput
 	int digits;
@@ -83,7 +84,7 @@ int main(int argc, char* argv[]) {
 	//loop for time steps
 	//which matlab file tells you how many
 	//seconds each time step reprsents (2.5?)
-	for(int Ti = 0; Ti*dt< numSteps; Ti++) {
+	for(int Ti = 0; Ti*dt< haltTime; Ti++) {
 
 
 		//keep track of simulation runs
@@ -123,7 +124,8 @@ int main(int argc, char* argv[]) {
 				growing_Tissue.update_Adhesion();
 			}
 		} else {	
-			if(Ti % 100000 == 0) {
+		//EDIT - UPDATING 5x more frequently than Mikahl's.
+			if(Ti % 20000 == 0) {
 				cout << "adhesion" << endl;
 				growing_Tissue.update_Adhesion();
 			}
@@ -136,7 +138,7 @@ int main(int argc, char* argv[]) {
 
 		//will divide cell if time
 		cout << "divide necessary cells" << endl;
-		growing_Tissue.division_check();
+		growing_Tissue.division_check(Ti*dt);
 
 		//Calculate new forces on cells and nodes
 		cout << "forces" << endl;

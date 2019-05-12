@@ -19,6 +19,7 @@
 //.txt file that is read in
 Tissue::Tissue(string filename) {
 	num_cells = 0;
+	numDivs = 0;
 	ifstream ifs(filename.c_str());
 
 	if(!ifs) {
@@ -160,12 +161,20 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	return;
 
 }
-void Tissue::division_check(){
+void Tissue::division_check(double time){
 	int number_cells = cells.size();
 	//#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		//cout << "dating cell" << i << endl;
-		cells.at(i)->division_check();
+		vector<double> currDivData;
+		currDivData.push_back(time);
+		bool division_happened = cells.at(i)->division_check(currDivData);
+		if (division_happened) { 
+			numDivs++;
+			div_info.push_back(currDivData);
+			cout << "Division Data updated" << endl;
+		}
+
 	}
 	return;
 }
