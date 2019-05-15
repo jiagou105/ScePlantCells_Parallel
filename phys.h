@@ -72,4 +72,15 @@ const double xsi_II = .8;
 const double gamma_II = 1.34;
 const double xsi_II_div = .4;
 ////=====================
+
+
+
+////CONTROL PANEL//////
+//A list of flags that can control various simulation behaviors.
+
+//INDEFINITE_GROWTH = true means that cytoplasm nodes will 
+//be added indefinitely.  If false, no cytoplasm nodes will be
+//added after time step 80000.  
+const bool INDEFINITE_GROWTH = true;
+
 #endif

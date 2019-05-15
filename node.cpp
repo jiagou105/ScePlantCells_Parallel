@@ -351,6 +351,19 @@ void Wall_Node::remove_from_adh_vecs(){
 	}
 	return;
 }
+
+/*void Wall_Node::peel() { 
+	Coord here = this->get_Location();
+	Coord right_loc = this->get_Right_Neighbor()->get_Location();
+	Coord left_loc = this->get_Left_Neighbor()->get_Location();
+	Coord right_outward = (right_loc - here).perpVector();
+	Coord left_outward = (left_loc - here).perpVector();
+	Coord myCenter = this->get_My_Cell()->
+
+
+	return;
+}*/
+
 //===========================================================
 // Calc Force Functions -----------------------
 //calculates total force on current wall node

@@ -139,6 +139,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void compute_Equi_Shape_Tensor();
 		void compute_Stress_Tensor();
 		Coord compute_direction_of_highest_tensile_stress();
+		Coord compute_direction_of_smallest_plane();
 		
 		//Growth of a cell
 		void update_Cell_Progress(int& Ti);

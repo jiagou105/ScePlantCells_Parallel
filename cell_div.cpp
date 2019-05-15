@@ -195,7 +195,7 @@ shared_ptr<Cell> Cell::division() {
 	this->set_growth_rate();
 	sister->set_growth_rate();
 	this->life_length = 0;	
-	this->Cell_Progress =0;		
+	this->Cell_Progress = 0;		
 	sister->reset_Cell_Progress();
 	sister->reset_Life_Length();
 	
@@ -210,7 +210,10 @@ shared_ptr<Cell> Cell::division() {
 	//Old code found the direction cell was stretched and returns its perpendicular.
 	//orientation = (this->compute_direction_of_highest_tensile_stress()).perpVector();
 	//Current code returns plane orientation directly.
+	//For Besson-Dumais rule:
 	orientation = this->compute_direction_of_highest_tensile_stress();
+	//For Errera's rule:
+	//orientation = this->compute_direction_of_smallest_plane();
 	set_Div_Plane(orientation.get_X(),orientation.get_Y());
 	//finds node on one side of cell
 	vector<shared_ptr<Wall_Node>> nodes;

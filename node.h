@@ -124,6 +124,8 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		void remove_from_adh_vecs();	
 		void adh_push_back(shared_ptr<Wall_Node> neighbor_node);
 		void update_adh_vec(shared_ptr<Wall_Node> node);
+		//Peel is under construction
+		//void peel();
 		//functions for calculating forces
 		void calc_Forces(int Ti);
 		Coord calc_Morse_SC(int Ti);
