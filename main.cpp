@@ -38,13 +38,14 @@ int main(int argc, char* argv[]) {
 	//this is a folder that holds node
 	//locations in the fashion that weitao 
 	//asked for to couple the models
-	string locations_folder = argv[2];
+	string division_folder = argv[2];
 	//keep track of time
+	int divDataCutoff = stoi(argv[4]);
 	int start = clock();	
 
 	//.txt file that tells initial
 	//cell configuration 
-	string init_tissue = "one_cell.txt";
+	string init_tissue = "SmallCluster.txt";
 	//cout << "Read in cell starter" << endl;	
 	cout <<  init_tissue << endl;
 
@@ -68,17 +69,24 @@ int main(int argc, char* argv[]) {
 	ofstream ofs_anim;
 	int out = 0;
 
-	int digits2;
+	//Unused int digits2;
 	string Number2;
 	string initial2 = "/Direction_Vec_";
 	string nem_Filename;
 	ofstream ofs_nem;
-	int out2 = 0;
+	//Unused int out2 = 0;
 
 
-	ofstream ofs_loc;
+	/*ofstream ofs_loc;
 	string locations_Filename;
 	string locations_initial = "/Locations_";
+	// Unused int Number3 = 0;*/
+	
+	ofstream ofs_loc;
+	string division_Filename;
+	string division_initial = "/Division_info.csv";
+	ofstream ofs_div;
+	bool div_printed = false;
 	// Unused int Number3 = 0;
 
 	//loop for time steps
@@ -123,11 +131,14 @@ int main(int argc, char* argv[]) {
 				cout << "adhesion early" << endl;
 				growing_Tissue.update_Adhesion();
 			}
+			//Peel after adhesion updates.
+			growing_Tissue.peel();
 		} else {	
 		//EDIT - UPDATING 5x more frequently than Mikahl's.
 			if(Ti % 20000 == 0) {
 				cout << "adhesion" << endl;
 				growing_Tissue.update_Adhesion();
+				growing_Tissue.peel();
 			}
 		}
 
@@ -138,7 +149,16 @@ int main(int argc, char* argv[]) {
 
 		//will divide cell if time
 		cout << "divide necessary cells" << endl;
-		growing_Tissue.division_check(Ti*dt);
+		bool divided = false;
+		divided = growing_Tissue.division_check(Ti*dt);
+		if (divided && growing_Tissue.get_Num_Divisions() == divDataCutoff) { 
+			division_Filename = division_folder + division_initial;  
+			ofs_div.open(division_Filename);
+			growing_Tissue.print_Div_Info(ofs_div);
+			ofs_div.close();
+			div_printed = true;
+		}
+
 
 		//Calculate new forces on cells and nodes
 		cout << "forces" << endl;
@@ -155,46 +175,40 @@ int main(int argc, char* argv[]) {
 			digits = ceil(log10(out + 1));
 			if (digits == 1 || digits == 0) {
 				Number = "0000" + to_string(out);
-			}	
-			else if (digits == 2) {
+			} else if (digits == 2) {
 				Number = "000" + to_string(out);
-			}	
-			else if (digits == 3) {
+			} else if (digits == 3) {
 				Number = "00" + to_string(out);
-			}
-			else if (digits == 4) {
+			} else if (digits == 4) {
 				Number = "0" + to_string(out);
 			}
 
-			Filename = anim_folder+ initial + Number + format;
+			Filename = anim_folder + initial + Number + format;
 
 			ofs_anim.open(Filename.c_str());
 			growing_Tissue.print_VTK_File(ofs_anim);
 			ofs_anim.close();	
 			out++;
 		}
-		if(Ti % 1000 == 0) {
+		/*if(Ti % 1000 == 0) {
 			digits2 = ceil(log10(out2 + 1));
 			if (digits2 == 1 || digits2 == 0) {
 				Number2 = "0000" + to_string(out2);
-			}	
-			else if (digits2 == 2) {
+			} else if (digits2 == 2) {
 				Number2 = "000" + to_string(out2);
-			}	
-			else if (digits2 == 3) {
+			} else if (digits2 == 3) {
 				Number2 = "00" + to_string(out2);
-			}
-			else if (digits2 == 4) {
+			} else if (digits2 == 4) {
 				Number2 = "0" + to_string(out2);
 			}
 
-			nem_Filename = nem_folder+ initial2 + Number2 + format;
+			nem_Filename = nem_folder + initial2 + Number2 + format;
 
 			ofs_nem.open(nem_Filename.c_str());
 			growing_Tissue.print_VTK_Direction_File(ofs_nem);
 			ofs_nem.close();	
 			out2++;
-		}	
+		}*/
 		//data output from simulations
 		//for cell center etc
 		/*if(Ti % 5000 == 1){
@@ -217,6 +231,12 @@ int main(int argc, char* argv[]) {
 	  ofs_nem.open(nem_Filename.c_str());
 	  growing_Tissue.nematic_output(ofs_nem);
 	  ofs_nem.close();*/
+	if (div_printed == false) { 
+			division_Filename = division_folder + division_initial;  
+			ofs_div.open(division_Filename);
+			growing_Tissue.print_Div_Info(ofs_div);
+			ofs_div.close();
+	}
 
 	int stop = clock();
 

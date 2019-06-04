@@ -86,17 +86,17 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	this->cell_center = center;
 	this->calc_WUS();
 	this->calc_CK();
-	this->set_growth_rate();
+	this->set_growth_rate(false);
 	if(this->boundary == 1) {
 		this->growth_direction = Coord(0,0);
 	} else if(this->stem == 1) {
 		this->growth_direction = Coord(0,1);
 	} else if((this->layer == 1)||(this->layer == 2)) {
 		//Growth Direction:  Apical growth in layer 1 is taken to be Isotropic
-		//this->growth_direction = Coord(0,0);
+		this->growth_direction = Coord(0,0);
 		//Set to be biased for the algorithm.
 		//Vertical
-		this->growth_direction = Coord(0,1);
+		//this->growth_direction = Coord(0,1);
 		//Horizontal
 		//this->growth_direction = Coord(1,0);
 	} else {
@@ -116,7 +116,6 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 //calls update wall equi angles for each node
 //calls update wall angles to get initial angle of each node
 void Cell::make_nodes(double radius) {
-
 	//assemble the membrane
 	int num_Init_Wall_Nodes = Init_Wall_Nodes;
 	double angle_increment = (2*pi)/num_Init_Wall_Nodes;
@@ -281,14 +280,18 @@ void Cell::update_Cell_Progress() {
 void Cell::calc_WUS() {
 	this->wuschel = 109.6*exp(-0.02928*(cell_center - Coord(0,0)).length()) + 27.69*exp(-0.0008808*(cell_center - Coord(0,0)).length());
 	//TEST - Reduce WUS since this will give painfully slow growth for one_cell. Divided by 4 to get center WUS around 32.
-	this->wuschel = this->wuschel / static_cast<double>(4);
+	//this->wuschel = this->wuschel / static_cast<double>(4);
+	//TEST - Slightly faster growth, "medium wus" (Divide only by 2).
+	//this->wuschel = this->wuschel / static_cast<double>(2);
+	//TEST - ULTRA-LOW WUS 
+	//this->wuschel = this->wuschel / static_cast<double>(10);
 	return;
 }
 void Cell::calc_CK() {
 	this->cytokinin = 132.9*exp(-0.01637*(cell_center-Coord(0,-40)).length());
 	return;
 }
-void Cell::set_growth_rate() {
+void Cell::set_growth_rate(bool init) {
 	// ULTRAFAST - TEST (Potentially unstable)
 	//this->growth_rate = unifRandInt(2500,3000);
 	// FAST - TEST
@@ -299,44 +302,45 @@ void Cell::set_growth_rate() {
 
 	if(this->wuschel < 12){
 		this->growth_rate = unifRandInt(2000,3000);
-	}
-	else if((this->wuschel >= 12) &&(this->wuschel <24)) {
+	} else if((this->wuschel >= 12) &&(this->wuschel <24)) {
 		this->growth_rate = unifRandInt(3000,4000);
-	}
-	else if((this->wuschel >= 24) && (this->wuschel <36)){
+	} else if((this->wuschel >= 24) && (this->wuschel <36)){
 		this->growth_rate = unifRandInt(4000,5000);
-	}
-	else if ((this->wuschel >= 36) && (this->wuschel <48)){
+	} else if ((this->wuschel >= 36) && (this->wuschel <48)){
 		this->growth_rate = unifRandInt(5000,6000);
-	}
-	else if ((this->wuschel >= 48) && (this->wuschel < 60)){
+	} else if ((this->wuschel >= 48) && (this->wuschel < 60)) {
 		this->growth_rate = unifRandInt(6000,7000);
-	}	
-	else if ((this->wuschel >= 60) && (this->wuschel <72)){
+	} else if ((this->wuschel >= 60) && (this->wuschel <72)) {
 		this->growth_rate = unifRandInt(7000,8000);
-	}
-	else if ((this->wuschel >= 72) && (this->wuschel < 84)){
+	} else if ((this->wuschel >= 72) && (this->wuschel < 84)) {
 		this->growth_rate = unifRandInt(8000,9000);
-	}
-	else if ((this->wuschel >= 84) && (this->wuschel < 96)){
+	} else if ((this->wuschel >= 84) && (this->wuschel < 96)) {
 		this->growth_rate = unifRandInt(9000,10000);
-	}
-	else if((this->wuschel >= 96)&&(this->wuschel < 108)) {
+	} else if((this->wuschel >= 96)&&(this->wuschel < 108)) {
 		this->growth_rate = unifRandInt(10000,11000);
-	}
-	else if((this->wuschel >= 108)&&(this->wuschel < 120)) {
+	} else if((this->wuschel >= 108)&&(this->wuschel < 120)) {
 		this->growth_rate = unifRandInt(11000,12000);
-	}
-	else if((this->wuschel >= 120)&&(this->wuschel < 132)) {
+	} else if((this->wuschel >= 120)&&(this->wuschel < 132)) {
 		this->growth_rate = unifRandInt(12000,13000);
-	}
-	else if(this->wuschel >= 132) {
+	} else if(this->wuschel >= 132) {
 		this->growth_rate = unifRandInt(15000,16000);
 	}
 	if(this->cytokinin > 1200){
 		this->growth_rate = unifRandInt(2000,5000);
 	}
 
+	if (GROWTH_DROPOFF) { 
+		Coord tissue_cent(0,0);
+		if (!init) { 
+			this->get_Tissue()->update_Tissue_Center();
+			tissue_cent = this->get_Tissue()->get_Tissue_Center();
+		}
+		Coord here_to_tissue_center = this->get_Cell_Center() - this->get_Tissue()->get_Tissue_Center(); 
+		double distal = here_to_tissue_center.length();
+		if (this->get_Tissue()->get_R_eff() > distal) { 
+			this->growth_rate = this->growth_rate/6;
+		}
+	}
 
 	return;
 }
@@ -451,7 +455,6 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 	//For Isotropic growth, the bending springs are baseline set to uniform stiffness.
 	//This is covered in the above "Else" statement.
 	//k_bend = K_BEND_UNIFORM;
-	//cout << "K bend: " << k_bend << endl;
 	return k_bend;
 }
 double Cell::compute_k_bend_div(shared_ptr<Wall_Node> current) {
@@ -505,13 +508,14 @@ void Cell::update_Wall_Angles() {
 	this->get_Wall_Nodes_Vec(walls);
 
 #pragma omp parallel for schedule(static,1)
-	for(unsigned int i=0; i< walls.size();i++) {
+	for(unsigned int i = 0; i< walls.size();i++) {
 		//cout<< "updating" <<endl;
 		walls.at(i)->update_Angle();
 	}
 	//cout << "Success" << endl;
 	return;
 }
+
 void Cell::update_Wall_Equi_Angles() {
 	//cout << "equi angles" << endl;
 	vector<shared_ptr<Wall_Node>> walls;
@@ -536,18 +540,14 @@ void Cell::update_Wall_Equi_Angles() {
 				theta = acos( min( max(costheta,-1.0), 1.0) );
 				if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
 					new_equi_angle = pi;
-				}
-				else{
+				} else {
 					//counter++;
 					new_equi_angle = circle_angle;
 
 				}
-			}
-			else{
+			} else {
 				new_equi_angle = circle_angle;
 			}
-			new_equi_angle = circle_angle;
-
 
 			//this was an idea to make the round part of the cell
 			//smaller in radius but not necessary
@@ -584,13 +584,11 @@ void Cell::update_Wall_Equi_Angles_Div() {
 				theta = acos( min( max(costheta,-1.0), 1.0) );
 				if((theta < ANGLE_FIRST_QUAD_Div) || (theta > ANGLE_SECOND_QUAD_Div)){
 					new_equi_angle = circle_angle;
-				}
-				else{
+				} else {
 					//counter++;
 					new_equi_angle = circle_angle;
 				}
-			}
-			else {
+			} else {
 				new_equi_angle = circle_angle;
 			}
 			//this was an idea to make the round part of the cell
@@ -616,7 +614,7 @@ void Cell::update_Cell_Center() {
 		Coord curr_loc;
 #pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
 #pragma omp for reduction(+:total_location) schedule(static,1)
-		for(unsigned int i=0;i<walls.size();i++) {
+		for(unsigned int i = 0; i < walls.size(); i++) {
 			curr_loc = walls.at(i)->get_Location();
 			total_location += curr_loc;
 		}
@@ -752,7 +750,7 @@ void Cell::update_adhesion_springs() {
 	//	#pragma omp parallel 
 	//	{
 	//		#pragma omp for schedule(static,1)
-	for(unsigned int i=0; i < current_cell_walls.size(); i++) {
+	for(unsigned int i = 0; i < current_cell_walls.size(); i++) {
 		//counter++;
 		//cout<< counter << endl;
 		//cout << "Wall node" << current_cell_walls.at(i) << endl;
@@ -770,6 +768,17 @@ void Cell::update_adhesion_springs() {
 	}
 	return;
 }
+
+void Cell::peel() { 
+	if (PEELING_ON) {
+		vector<shared_ptr<Wall_Node>> wall_nodes;
+		for (unsigned int i = 0; i < wall_nodes.size(); i++) {
+			wall_nodes.at(i)->peel();
+		}
+	}
+	return;
+}
+
 //===============================================================
 //============================
 //  Forces, Positioning, and Shape
@@ -793,7 +802,7 @@ void Cell::calc_New_Forces(int Ti) {
 #pragma omp parallel
 	{
 #pragma omp for schedule(static,1)
-		for(unsigned int i=0; i < walls.size(); i++) {
+		for(unsigned int i = 0; i < walls.size(); i++) {
 			walls.at(i)->calc_Forces(Ti);
 		}	
 	}
@@ -936,6 +945,7 @@ void Cell::compute_Stress_Tensor() {
 			temp[i][j] = SHEAR_MODULUS * (shape_tensor[i][j]-equi_shape_tensor[i][j]) / traceMc0;
 		}
 	}
+	stress_tensor = temp;
 	return;
 }
 
@@ -948,6 +958,7 @@ Coord Cell::compute_direction_of_highest_tensile_stress(){
 	cout << "Equilibrium shape Tensor Calculated." << endl;
 	this->compute_Stress_Tensor();
 	cout << "Stress Tensor Calculated." << endl;
+
 	vector<shared_ptr<Wall_Node>> wall_nodes;
 	this->get_Wall_Nodes_Vec(wall_nodes);
 	Coord max_coord;
@@ -956,11 +967,17 @@ Coord Cell::compute_direction_of_highest_tensile_stress(){
 	Coord curr_coord;
 	Coord cent = this->get_Cell_Center();
 	double curr_stress, tempX, tempY;
+	unsigned int n = this->get_wall_count();
+	unsigned int m = wall_nodes.size();
+	//Warning message handling - n is to handle unsigned int comparison
+	//if (wall_nodes.size() != this->get_wall_count()) cout << "Error, fault incoming" << endl;
+	if (n != m) cout << "Error, fault incoming" << endl;
+	cout << "Total wall count: " << this->get_wall_count() << endl;
 	for(int i = 0; i < this->get_wall_count(); i++) {
 		//Vectors tested are all vectors from center to the wall nodes.
 		Coord curr_coord = wall_nodes.at(i)->get_Location() - cent;
 		//Normalize - tested vectors have norm length
-		curr_coord = curr_coord / curr_coord.length();
+		if (curr_coord.length() > 0) curr_coord = curr_coord / curr_coord.length();
 		//Matrix multiply temp as S*u
 		tempX = curr_coord.get_X() * stress_tensor[0][0] + curr_coord.get_Y() * stress_tensor[0][1];
 		tempY = curr_coord.get_X() * stress_tensor[1][0] + curr_coord.get_Y() * stress_tensor[1][1];
@@ -972,16 +989,24 @@ Coord Cell::compute_direction_of_highest_tensile_stress(){
 		if (curr_stress > max_stress || !initialized) {
 			max_coord = curr_coord;
 			initialized = true;
+			cout << "Replaced by: " << i << endl;
 		} else if (curr_stress == max_stress) {
-			double X = unifRand(static_cast<double>(0),static_cast<double>(1));
-			if (X < 0.5) {
-				max_coord = curr_coord;
-			}
+			double X = unifRand( static_cast<double>(0), static_cast<double>(1) );
+			if (X < 0.5) max_coord = curr_coord;
+			cout << "Max isn't first" << endl;
+		} else { 
+			cout << "Discareded: " << i << endl;
 		}
 	}
 	cout << "Completed Stressvec calculation\n";
 	Coord direction_vec = max_coord;
 	cout << "Division plane calculated:  <" << direction_vec.get_X() << "," << direction_vec.get_Y() << ">. " << endl;
+	if (direction_vec.length() == 0) { 
+		double theta = unifRand(0,2*pi);
+		Coord x(cos(theta),sin(theta));
+		direction_vec = x;
+		cout << "DIRECTION VEC ZERO, RETURN RANDOM" << endl;
+	}
 	return direction_vec;
 }
 
@@ -1057,6 +1082,20 @@ void Cell::update_Cell_Progress(int& Ti) {
 
 	return;
 }
+
+double Cell::getRadius() {
+	double radius;
+	vector<shared_ptr<Wall_Node>> walls;
+	get_Wall_Nodes_Vec(walls);
+	Coord cent = get_Cell_Center();
+	double N = static_cast<double>(walls.size());
+	for (unsigned int i = 0; i < walls.size(); i++) 
+		radius = radius +(walls.at(i)->get_Location() - cent).length();
+	radius = radius/N;
+	return radius;
+
+}
+
 //Checks to see if division needs to happen.  If so, pass the data regarding the division back to the 
 //tissue to store for later. Otherwise do nothing. DivData is of the form
 //(Timestep, Dividing cell ancestry, CenterX, Center Y, DivPlaneX, DivPlaneY).
@@ -1068,6 +1107,8 @@ bool Cell::division_check(vector<double>& currDivData){
 	} else if(this->boundary == 1) {
 		//do nothing
 	} else if(this->Cell_Progress >= 30) {
+
+		cout << "RADIUS BEFORE DIVISION: " << getRadius() << endl;
 
 		cout << "dividing cell" << this->rank <<  endl;
 		//orientation of division should be 
@@ -1118,7 +1159,7 @@ bool Cell::division_check(vector<double>& currDivData){
 		new_Cell->update_Neighbor_Cells();
 		new_Cell->update_adhesion_springs();
 		new_Cell->get_Neighbor_Cells(neighbor_cells);
-		for(unsigned int i =0; i < neighbor_cells.size(); i++) {
+		for(unsigned int i = 0; i < neighbor_cells.size(); i++) {
 			neighbor_cells.at(i)->update_Neighbor_Cells();
 			neighbor_cells.at(i)->clear_adhesion_vectors();
 			neighbor_cells.at(i)->update_adhesion_springs();
@@ -1473,7 +1514,6 @@ void Cell::print_VTK_Scalars_Average_Pressure(ofstream& ofs) {
 }
 
 void Cell::print_VTK_Scalars_WUS(ofstream& ofs) {
-
 	double concentration = 0;
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
 	do {
@@ -1492,7 +1532,6 @@ void Cell::print_VTK_Scalars_WUS(ofstream& ofs) {
 	return;
 }
 void Cell::print_VTK_Scalars_CK(ofstream& ofs) {
-
 	double concentration = 0;
 	shared_ptr<Wall_Node> curr_wall = left_Corner;
 	do {

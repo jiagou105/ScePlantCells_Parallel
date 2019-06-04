@@ -103,7 +103,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void calc_CK();
 		double get_CYT_concentration() {return cytokinin;}
 		//set growth rate based on WUS
-		void set_growth_rate();
+		void set_growth_rate(bool init = false);
 		//set/get growth direction
 		void set_growth_direction(Coord gd);
 		Coord get_growth_direction(){return growth_direction;}
@@ -131,6 +131,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//adhesion
 		void clear_adhesion_vectors();
 		void update_adhesion_springs();
+		void peel();
 
 		//Forces and Positionsing
 		void calc_New_Forces(int Ti);
@@ -154,6 +155,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void find_Largest_Length(shared_ptr<Wall_Node>& right);
 		Coord compute_point_on_line(double t);;
 		void add_Cyt_Node();
+
+		double getRadius();
 		
 		//Functions for Division
 		void find_nodes_for_div_plane(Coord& orientation, vector<shared_ptr<Wall_Node>>& nodes, int search_amount);
@@ -173,6 +176,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Scalars_Average_Pressure_cell(ofstream& ofs);
 		void print_VTK_Scalars_WUS(ofstream& ofs);
 		void print_VTK_Scalars_WUS_cell(ofstream& ofs);
+		void print_VTK_Scalars_AUX(ofstream& ofs);
+		void print_VTK_Scalars_AUX_cell(ofstream& ofs);
 		void print_VTK_Scalars_CK(ofstream& ofs);
 		void print_VTK_Scalars_Total(ofstream& ofs);
 		void print_VTK_Vectors(ofstream& ofs);

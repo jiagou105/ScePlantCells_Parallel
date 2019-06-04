@@ -18,7 +18,7 @@
 Node::Node(Coord loc) {
 	my_loc = loc;
 	new_force = Coord();
-	int vtk_id;
+	//int vtk_id;
 }
 void Node::set_Damping(double new_damping){
 	this-> damping = new_damping;
@@ -60,7 +60,7 @@ void Cyt_Node::calc_Forces(int Ti) {
 	//cout << "II" << Fii << endl;
 	Coord Fmi = calc_Morse_MI(my_cell->get_Left_Corner(),Ti);
 	//cout << "MI" << Fmi << endl;
-   	new_force = Fmi + Fii;
+	new_force = Fmi + Fii;
 	//cout << "New Force before" << new_force << endl;
 	return;
 }
@@ -76,14 +76,14 @@ Coord Cyt_Node::calc_Morse_II(int Ti) {
 		cout << "Error: Trying to access NULL Pointer. Aborting!" << endl;
 		exit(1);
 	}
-	
+
 	vector<shared_ptr<Cyt_Node>>cyts;
 	my_cell->get_Cyt_Nodes_Vec(cyts);
 	shared_ptr<Cyt_Node> me= shared_from_this();
-	#pragma omp parallel
+#pragma omp parallel
 	{	
-		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
-		#pragma omp for reduction(+:Fii) schedule(static,1)
+#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+#pragma omp for reduction(+:Fii) schedule(static,1)
 		for (unsigned int j = 0; j < cyts.size(); j++) {
 			//don't calculate yourself
 			if (cyts.at(j) != me) {
@@ -103,14 +103,14 @@ Coord Cyt_Node::calc_Morse_MI(shared_ptr<Wall_Node> orig, int Ti) {
 		cout << "Error: Trying to access NULL Pointer. Aborting!" << endl;
 		exit(1);
 	}
-	
+
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_My_Cell()->get_Wall_Nodes_Vec(walls);
 	shared_ptr<Cyt_Node> me = shared_from_this();
-	#pragma omp parallel
+#pragma omp parallel
 	{	
-		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
-		#pragma omp for reduction(+:Fmi) schedule(static,1)
+#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+#pragma omp for reduction(+:Fmi) schedule(static,1)
 		for(unsigned int i = 0; i < walls.size(); i++) {
 			Fmi +=me-> morse_Equation(walls.at(i),Ti);
 			//update curr_wall
@@ -125,13 +125,13 @@ Coord Cyt_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
 		exit(1);
 	}
-	
+
 	//use Int-Int variables
-    	Coord Fii;
-    	Coord diff_vect = cyt->get_Location() - my_loc;
-    	double diff_len = diff_vect.length();
+	Coord Fii;
+	Coord diff_vect = cyt->get_Location() - my_loc;
+	double diff_len = diff_vect.length();
 	double attract = (U_II/xsi_II)*exp(diff_len*(-1)/xsi_II);
-    	double repel = (W_II/gamma_II)*exp(diff_len*(-1)/gamma_II);
+	double repel = (W_II/gamma_II)*exp(diff_len*(-1)/gamma_II);
 	Fii = diff_vect*((-attract + repel)/diff_len);
 	return Fii;
 }
@@ -147,8 +147,8 @@ Coord Cyt_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	Coord diff_vect = wall->get_Location() - my_loc; 
 	double diff_len = diff_vect.length();
 	double attract = (U_MI/xsi_MI)*exp(diff_len*(-1)/xsi_MI);
-   	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
-     	Fmi = diff_vect*((-attract + repel)/diff_len);
+	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
+	Fmi = diff_vect*((-attract + repel)/diff_len);
 	return Fmi;
 }
 
@@ -183,7 +183,7 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right) : Node(loc)   {
 	//functions that use this must set
 	this->left = left;
-    	this->right = right;
+	this->right = right;
 	this-> my_cell = my_cell;
 	//equilibrium length
 	update_Angle();
@@ -224,7 +224,7 @@ void Wall_Node::update_Angle() {
 	Coord left_vect = get_Left_Neighbor()->get_Location() - get_Location();
 	Coord right_vect = get_Right_Neighbor()->get_Location() - get_Location();
 
-	
+
 	double left_len = left_vect.length();
 	double right_len = right_vect.length();
 
@@ -236,12 +236,12 @@ void Wall_Node::update_Angle() {
 	if (crossProd < 0.0) {
 		theta = 2 * pi - theta;
 	}
-	
+
 	//update protected member variables
 	my_angle = theta;
 	//cout << "Angle: " <<  theta << endl;
 	cross_Prod = crossProd;
-	
+
 	return;
 }
 void Wall_Node::set_K_LINEAR(double k_lin){
@@ -280,23 +280,23 @@ void Wall_Node::make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls) {
 		//cout << "neighbor wall: " << counter << endl;
 		neighbor_node_loc = neighbor_walls.at(i)->get_Location();
 		curr_distance = (this_ptr_loc - neighbor_node_loc).length();
-			if(curr_distance < ADHThresh){
+		if(curr_distance < ADHThresh){
 			//	cout << "within adh thresh" << endl;
-				if(this_ptr_adh_vec.size() < NUMBER_ADH_CONNECTIONS){
-					this_ptr->adh_push_back(neighbor_walls.at(i));
+			if(this_ptr_adh_vec.size() < NUMBER_ADH_CONNECTIONS){
+				this_ptr->adh_push_back(neighbor_walls.at(i));
+				this_ptr_adh_vec = this_ptr->get_adh_vec();
+			}
+			else{
+				//sort in descending order
+				reverse(this_ptr_adh_vec.begin(),this_ptr_adh_vec.end());
+				biggest_dist = (this_ptr_loc - this_ptr_adh_vec.at(0)->get_Location()).length();
+
+				if(curr_distance < biggest_dist){
+					this_ptr->update_adh_vec(neighbor_walls.at(i));
 					this_ptr_adh_vec = this_ptr->get_adh_vec();
 				}
-				else{
-					//sort in descending order
-					reverse(this_ptr_adh_vec.begin(),this_ptr_adh_vec.end());
-					biggest_dist = (this_ptr_loc - this_ptr_adh_vec.at(0)->get_Location()).length();
-					
-					if(curr_distance < biggest_dist){
-						this_ptr->update_adh_vec(neighbor_walls.at(i));
-						this_ptr_adh_vec = this_ptr->get_adh_vec();
-					}
-				}
 			}
+		}
 		//cout << "adhesion vec size: " << this_ptr_adh_vec.size()<< endl;
 	}
 	return;
@@ -340,10 +340,10 @@ void Wall_Node::update_adh_vec(shared_ptr<Wall_Node> node) {
 void Wall_Node::remove_from_adh_vecs(){
 	shared_ptr<Wall_Node> me = shared_from_this();
 	vector<shared_ptr<Wall_Node>> neighbor_connections;
-	for(unsigned int i = 0; i < adhesion_vector.size(); i++){
+	for (unsigned int i = 0; i < adhesion_vector.size(); i++) {
 		neighbor_connections = adhesion_vector.at(i)->get_adh_vec();
 		adhesion_vector.at(i)->clear_adhesion_vec();
-		for(unsigned int j = 0; j<neighbor_connections.size();j++){
+		for (unsigned int j = 0; j < neighbor_connections.size(); j++) {
 			if(neighbor_connections.at(j) != me){
 				adhesion_vector.at(i)->adh_push_back(neighbor_connections.at(j));
 			}
@@ -352,17 +352,202 @@ void Wall_Node::remove_from_adh_vecs(){
 	return;
 }
 
+//PEEL V1
 /*void Wall_Node::peel() { 
+  cout << "BEGIN PEELING" << endl;
+  Coord here = this->get_Location();
+  Coord right_loc = this->get_Right_Neighbor()->get_Location();
+  Coord left_loc = this->get_Left_Neighbor()->get_Location();
+  Coord right_outward = (right_loc - here).perpVector();
+  Coord left_outward = (left_loc - here).perpVector();
+  Coord cell_center = this->get_My_Cell()->get_Cell_Center();
+  Coord center_to_node = here - cell_center;
+
+  if (center_to_node.dot(left_outward) <= 0) left_outward = Coord(0,0) - left_outward;
+  if (center_to_node.dot(right_outward) <= 0) right_outward = Coord(0,0) - right_outward;
+
+  Coord outward = (left_outward + right_outward)*0.5;
+//vector<shared_ptr<Wall_Node>> partners = this->get_adh_vec();
+
+double costheta, theta;
+//D is the vector between this and the adhesion partner. 
+Coord Delta;
+bool peeled = false;
+
+unsigned int i = 0;
+unsigned int to_be_removed;
+shared_ptr<Wall_Node> ex;
+vector<shared_ptr<Wall_Node>> ex_old_adh_vec;
+vector<shared_ptr<Wall_Node>> my_old_adh_vec;
+shared_ptr<Wall_Node> me = shared_from_this(); 
+
+while (i < (me->get_adh_vec()).size()) { 
+peeled = false;
+my_old_adh_vec = me->get_adh_vec();
+Delta = my_old_adh_vec.at(i)->get_Location() - here;
+costheta = Delta.dot(outward) / (outward.length() * Delta.length());
+theta = acos(costheta); 
+if (theta >= PEELING_ANGLE && !peeled) {
+peeled = true;
+to_be_removed = i;
+}
+if (peeled) {
+//Remove me from my ex-neighbor's list
+ex_old_adh_vec = my_old_adh_vec.at(to_be_removed)->get_adh_vec();
+my_old_adh_vec.at(to_be_removed)->clear_adhesion_vec();
+for (unsigned int j = 0; j < ex_old_adh_vec.size(); j++) { 
+if (ex_old_adh_vec.at(j) != me) {
+my_old_adh_vec.at(to_be_removed)->adh_push_back(ex_old_adh_vec.at(j));
+}
+}
+//Remove my ex from my list
+me->clear_adhesion_vec();
+for (unsigned int j = 0; j < my_old_adh_vec.size(); j++) {
+if (j != to_be_removed) {
+me->adh_push_back(my_old_adh_vec.at(j));
+}
+}
+i = 0;  //This is safe, but I don't think it's necessary.  It also saves at most seven or so angle calculations to turn it off.  
+continue;
+}
+i++;
+cout << "PEELING IN PROGRESS..."  << endl;
+}
+
+cout << "Peeling finished."  << endl;
+return;
+}*/
+
+//peelV2 - Fits a circle to each node to find outward normal.
+void Wall_Node::peel() { 
+	cout << "BEGIN PEELING" << endl;
 	Coord here = this->get_Location();
 	Coord right_loc = this->get_Right_Neighbor()->get_Location();
 	Coord left_loc = this->get_Left_Neighbor()->get_Location();
-	Coord right_outward = (right_loc - here).perpVector();
-	Coord left_outward = (left_loc - here).perpVector();
-	Coord myCenter = this->get_My_Cell()->
+	double h,k;
+	this->getCircleVars(h,k);
+	Coord local_center(h,k);
+	Coord outward = here-local_center;
+	outward = outward / outward.length();
+	//If circle fails, then default to old algorithm.
+	if ( isnan(outward.get_X()) || isnan(outward.get_Y()) || outward.length() == 0 ) {
+		right_loc = this->get_Right_Neighbor()->get_Location();
+		left_loc = this->get_Left_Neighbor()->get_Location();
+		Coord right_outward = (right_loc - here).perpVector();
+		Coord left_outward = (left_loc - here).perpVector();
+		Coord cell_center = this->get_My_Cell()->get_Cell_Center();
+		Coord center_to_node = here - cell_center;
 
+		if (center_to_node.dot(left_outward) <= 0) left_outward = Coord(0,0) - left_outward;
+		if (center_to_node.dot(right_outward) <= 0) right_outward = Coord(0,0) - right_outward;
+		cout << "CIRCLE FAILED" << endl;
+	}
+	//vector<shared_ptr<Wall_Node>> partners = this->get_adh_vec();
 
+	double costheta, theta;
+	//D is the vector between this and the adhesion partner. 
+	Coord Delta;
+	bool peeled = false;
+
+	unsigned int i = 0;
+	unsigned int to_be_removed;
+	shared_ptr<Wall_Node> ex;
+	vector<shared_ptr<Wall_Node>> ex_old_adh_vec;
+	vector<shared_ptr<Wall_Node>> my_old_adh_vec;
+	shared_ptr<Wall_Node> me = shared_from_this(); 
+
+	while (i < (me->get_adh_vec()).size()) { 
+		peeled = false;
+		my_old_adh_vec = me->get_adh_vec();
+		Delta = my_old_adh_vec.at(i)->get_Location() - here;
+		costheta = Delta.dot(outward) / (outward.length() * Delta.length());
+		theta = acos(costheta); 
+		if (theta >= PEELING_ANGLE && !peeled) {
+			peeled = true;
+			to_be_removed = i;
+		}
+		if (peeled) {
+			//Remove me from my ex-neighbor's list
+			ex_old_adh_vec = my_old_adh_vec.at(to_be_removed)->get_adh_vec();
+			my_old_adh_vec.at(to_be_removed)->clear_adhesion_vec();
+			for (unsigned int j = 0; j < ex_old_adh_vec.size(); j++) { 
+				if (ex_old_adh_vec.at(j) != me) {
+					my_old_adh_vec.at(to_be_removed)->adh_push_back(ex_old_adh_vec.at(j));
+				}
+			}
+			//Remove my ex from my list
+			me->clear_adhesion_vec();
+			for (unsigned int j = 0; j < my_old_adh_vec.size(); j++) {
+				if (j != to_be_removed) {
+					me->adh_push_back(my_old_adh_vec.at(j));
+				}
+			}
+			i = 0;  //This is safe, but I don't think it's necessary.  It also saves at most seven or so angle calculations to turn it off.  
+			continue;
+		}
+		i++;
+		cout << "PEELING IN PROGRESS..."  << endl;
+	}
+
+	cout << "Peeling finished."  << endl;
 	return;
-}*/
+}
+
+//This is an equation to get the center of a circle fitted to this node and its two neighbors.
+void Wall_Node::getCircleVars(double& h, double& k) { 
+	Coord here = this->get_Location();
+	Coord right_loc = this->get_Right_Neighbor()->get_Location();
+	Coord left_loc = this->get_Left_Neighbor()->get_Location();
+	double x1, y1, x2, y2, x3, y3;
+	x1 = here.get_X();
+	y1 = here.get_Y();
+	x2 = right_loc.get_X();
+	y2 = right_loc.get_Y();
+	x3 = left_loc.get_X();
+	y3 = left_loc.get_Y();
+
+	double x12 = x1 - x2; 
+	double x13 = x1 - x3; 
+
+	double y12 = y1 - y2; 
+	double y13 = y1 - y3; 
+
+	double y31 = y3 - y1; 
+	double y21 = y2 - y1; 
+
+	double x31 = x3 - x1; 
+	double x21 = x2 - x1; 
+	// x1^2 - x3^2 
+	double sx13 = pow(x1, 2) - pow(x3, 2); 
+
+	// y1^2 - y3^2 
+	double sy13 = pow(y1, 2) - pow(y3, 2); 
+
+	double sx21 = pow(x2, 2) - pow(x1, 2); 
+	double sy21 = pow(y2, 2) - pow(y1, 2); 
+
+	double f = ((sx13) * (x12) 
+			+ (sy13) * (x12) 
+			+ (sx21) * (x13) 
+			+ (sy21) * (x13)) 
+		/ (2 * ((y31) * (x12) - (y21) * (x13))); 
+	double g = ((sx13) * (y12) 
+			+ (sy13) * (y12) 
+			+ (sx21) * (y13) 
+			+ (sy21) * (y13)) 
+		/ (2 * ((x31) * (y12) - (x21) * (y13))); 
+
+	//double c = -pow(x1, 2) - pow(y1, 2) - 2 * g * x1 - 2 * f * y1; 
+	//In case I need this, the radius can be calculate with c.
+
+	// eqn of circle be x^2 + y^2 + 2*g*x + 2*f*y + c = 0 
+	// where centre is (h = -g, k = -f) and radius r 
+	// as r^2 = h^2 + k^2 - c 
+	h = -g; 
+	k = -f; 
+	
+	return;
+}
 
 //===========================================================
 // Calc Force Functions -----------------------
@@ -404,10 +589,10 @@ Coord Wall_Node::calc_Morse_SC(int Ti) {
 	my_cell->get_Cyt_Nodes_Vec(cyt_nodes);
 	shared_ptr<Wall_Node> curr_wall= shared_from_this();
 	Coord Fmi;
-	#pragma omp parallel
+#pragma omp parallel
 	{	
-		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
-		#pragma omp for reduction(+:Fmi) schedule(static,1)
+#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+#pragma omp for reduction(+:Fmi) schedule(static,1)
 		for (unsigned int i = 0; i < cyt_nodes.size(); i++) {
 			Fmi += curr_wall->morse_Equation(cyt_nodes.at(i), Ti);
 		}
@@ -420,10 +605,10 @@ Coord Wall_Node::calc_Morse_SC(int Ti) {
 Coord Wall_Node::calc_Linear() {
 	Coord F_lin;
 
-//	cout << "calc left" << endl;
+	//	cout << "calc left" << endl;
 	F_lin += linear_Equation(left);
 
-//	cout << "calc right" << endl;
+	//	cout << "calc right" << endl;
 	F_lin += linear_Equation(right);
 	return F_lin;
 }
@@ -448,10 +633,10 @@ Coord Wall_Node::calc_Morse_DC(int Ti) {
 	my_cell->get_Neighbor_Cells(cells);	
 	//cout << "Neighbor cells: " << cells.size()<<endl;
 	//cout << "getting neighbors" << endl;
-	#pragma omp parallel 
+#pragma omp parallel 
 	{
-		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
-		#pragma omp for reduction(+:Fdc) schedule(static,1) 
+#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+#pragma omp for reduction(+:Fdc) schedule(static,1) 
 		for (unsigned int i = 0; i < cells.size(); i++) {
 			Fdc += neighbor_nodes(cells.at(i), Ti);
 		}
@@ -472,10 +657,10 @@ Coord Wall_Node::neighbor_nodes(shared_ptr<Cell> neighbor, int Ti) {
 	neighbor->get_Wall_Nodes_Vec(walls);
 	//cout << "Number walls" << walls.size() << endl;
 	shared_ptr<Wall_Node> me = shared_from_this();
-	#pragma omp parallel
+#pragma omp parallel
 	{
-		#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
-		#pragma omp for reduction(+:sum) schedule(static,1) 
+#pragma omp declare reduction(+:Coord:omp_out+=omp_in) initializer(omp_priv(omp_orig))
+#pragma omp for reduction(+:sum) schedule(static,1) 
 		for(unsigned int j =0; j< walls.size(); j++) {
 			sum += me->morse_Equation(walls.at(j), Ti);
 		}
@@ -490,7 +675,7 @@ Coord Wall_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
 		exit(1);
 	}
-	
+
 	//use Membr - int variables
 	Coord Fmi;
 	Coord diff_vect = cyt->get_Location() - my_loc;
@@ -499,7 +684,7 @@ Coord Wall_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {
 	double repel = (W_MI/gamma_MI)*exp(diff_len*(-1)/gamma_MI);
 
 	Fmi = diff_vect*((-attract + repel)/diff_len);
-	
+
 	//cout << Fmi << endl;
 	return Fmi;
 }
@@ -511,21 +696,21 @@ Coord Wall_Node::morse_Equation(shared_ptr<Wall_Node> wall, int Ti) {
 	}
 
 	//use Mem-Mem variables
-   	Coord Fmmd;
-   	Coord diff_vect = wall->get_Location() - my_loc;
-    	double diff_len = diff_vect.length();
-      	double attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
-    	double repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
-   	
+	Coord Fmmd;
+	Coord diff_vect = wall->get_Location() - my_loc;
+	double diff_len = diff_vect.length();
+	double attract = (U_MM/xsi_MM)*exp(diff_len*(-1)/xsi_MM);
+	double repel = (W_MM/gamma_MM)*exp(diff_len*(-1)/gamma_MM);
+
 	Fmmd = diff_vect*((-attract + repel)/diff_len);
-	
+
 	//cout << Fmmd << endl;
 	return Fmmd;
 }
 Coord Wall_Node::bending_Equation_Center() {
 	Coord F_center;
 	double self_Constant; 
-	
+
 	double eps = 0.0001;
 
 	if (abs(my_angle - pi) < eps) {
@@ -544,7 +729,7 @@ Coord Wall_Node::bending_Equation_Center() {
 	Coord term_r2 = right_vect*cos(my_angle)/pow(right_len,2);
 
 	F_center = (term_l1 + term_l2 + term_r1 + term_r2) * self_Constant;
-	
+
 	//cout << "Bending center: " << F_center << endl;	
 	return F_center;
 }
@@ -554,7 +739,7 @@ Coord Wall_Node::bending_Equation_Left() {
 	double left_equi_angle = left->get_Equi_Angle();
 	double left_angle = left->get_Angle();
 	double left_Constant;
-	
+
 	double eps = 0.0001;
 
 	if (abs(left_angle - pi) < eps) {
@@ -563,7 +748,7 @@ Coord Wall_Node::bending_Equation_Left() {
 	else {
 		left_Constant = K_BEND*(left_angle - left_equi_angle)/(sqrt(1-pow(cos(left_angle),2)));
 	}
-		
+
 
 	Coord left_vect = left->get_Location() - my_loc;
 	double left_len = left_vect.length();
@@ -573,7 +758,7 @@ Coord Wall_Node::bending_Equation_Left() {
 	Coord left_term2 = left_vect*cos(left_angle)/pow(left_len,2);
 
 	F_left = (left_left_term1 + left_term2) * left_Constant;
-	
+
 	//cout << "Bending left: " << F_left << endl;
 	return F_left;
 }
@@ -584,7 +769,7 @@ Coord Wall_Node::bending_Equation_Right() {
 	double right_equ_angle = right->get_Equi_Angle();
 	double right_angle = right->get_Angle();
 	double right_Constant;
-	
+
 	double eps = 0.0001;
 
 	if (abs(right_angle - pi) < eps) {
@@ -593,26 +778,26 @@ Coord Wall_Node::bending_Equation_Right() {
 	else{
 		right_Constant = K_BEND*(right_angle-right_equ_angle)/(sqrt(1-pow(cos(right_angle),2)));
 		//}
-	}
+}
 
-	Coord right_vect = right->get_Location() - my_loc;
-	double right_len = right_vect.length();
-	Coord right_right_vect = right->get_Right_Neighbor()->get_Location()-right->get_Location();
-	double right_right_len = right_right_vect.length();
-	Coord right_right_term1 = right_right_vect/(right_right_len*right_len);
-	Coord right_term2 = right_vect*cos(right_angle)/pow(right_len,2);
+Coord right_vect = right->get_Location() - my_loc;
+double right_len = right_vect.length();
+Coord right_right_vect = right->get_Right_Neighbor()->get_Location()-right->get_Location();
+double right_right_len = right_right_vect.length();
+Coord right_right_term1 = right_right_vect/(right_right_len*right_len);
+Coord right_term2 = right_vect*cos(right_angle)/pow(right_len,2);
 
-	F_right = (right_right_term1 + right_term2)*right_Constant;
-	
-	//cout << "Bending right: " << F_right << endl;
-	return F_right;
+F_right = (right_right_term1 + right_term2)*right_Constant;
+
+//cout << "Bending right: " << F_right << endl;
+return F_right;
 }
 Coord Wall_Node::linear_Equation(shared_ptr<Wall_Node> wall) {
 	if (wall == NULL) {
 		cout << "ERROR: Trying to access NULL pointer. Aborting!" << endl;
 		exit(1);
 	}
-	
+
 	//use spring constant variables
 	Coord F_lin;
 	Coord diff_vect = wall->get_Location() - my_loc;
@@ -629,13 +814,13 @@ Coord Wall_Node::linear_Equation_ADH(shared_ptr<Wall_Node>& wall) {
 		exit(1);
 	};
 	Coord F_lin;
-//	cout << "compute diff vec" << endl;
+	//	cout << "compute diff vec" << endl;
 	Coord wall_loc = wall->get_Location();
-//	cout << "wall loc"  << endl;
+	//	cout << "wall loc"  << endl;
 	Coord loc = my_loc;
-//	cout << "my loc " << endl;
+	//	cout << "my loc " << endl;
 	Coord diff_vect = wall_loc - loc;
-//	cout << "coord diff is : " << diff_vect << endl;
+	//	cout << "coord diff is : " << diff_vect << endl;
 	double diff_len = diff_vect.length();
 	if(this->get_My_Cell()->get_Layer() == 1){
 		F_lin = (diff_vect/diff_len)*(K_ADH_L1*(diff_len - MembrEquLen_ADH));

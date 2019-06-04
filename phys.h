@@ -14,7 +14,7 @@ const double dt = .0003;
 const int Init_Num_Cyt_Nodes = 15;
 const int Init_Wall_Nodes = 100;
 const double pi = acos(-1.0);
-const double EQUI_RADIUS = 5;
+const double EQUI_RADIUS = 5.31121;
 //these are used to control equi angles
 //and bending spring constants
 const double ANGLE_FIRST_QUAD = 0.785398;
@@ -82,5 +82,16 @@ const double xsi_II_div = .4;
 //be added indefinitely.  If false, no cytoplasm nodes will be
 //added after time step 80000.  
 const bool INDEFINITE_GROWTH = true;
+//PEELING_ON = true if the peeling function is active, false if it does nothing and is ignored.
+const bool PEELING_ON = false;
+//PEELING_ANGLE = Threshold in radians after which adhesion will detach during peeling, where the angle measured
+//is between the outward normal of the cell and the vector from this node to the adhesion 
+//partner in question.
+const double PEELING_ANGLE = 1.2;
+
+
+//GROWTH_DROPOFF = true if the function computing growth rate will drop off past R_BASE.  R_BASE may be modified in tissue.
+const bool GROWTH_DROPOFF = true; 
+const double R_BASE = 25;
 
 #endif

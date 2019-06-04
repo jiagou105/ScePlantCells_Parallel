@@ -10,12 +10,13 @@ using namespace std;
 int main() {
 
 	ofstream ofs;
-	ofs.open("AUTO_BATCH.txt");
+	ofs.open("AUTO_BATCH.sh");
 	int test;
 	int cores;
 	char p[100]; 
 	char hours[100];
 	char mins[100];
+	int divDataCutoff;
 	cout << "Test #: ";
 	cin >> test; 
 	if (cin.fail()) { 
@@ -43,8 +44,14 @@ int main() {
 		ofs.close();
 		return 1;
 	}
-	cout << "Batch: ";
+	cout << "Partition: ";
 	cin >> p; 
+	if (cin.fail()) { 
+		ofs.close();
+		return 1;
+	}
+	cout << "Division Tracking Cutoff: ";
+	cin >> divDataCutoff; 
 	if (cin.fail()) { 
 		ofs.close();
 		return 1;
@@ -63,7 +70,7 @@ int main() {
 	ofs << "mkdir Animate_test_" << test << "\n";
 	ofs << "mkdir Nematic_test_1 \n";
 	ofs << "mkdir Locations_test_1\n";
-	ofs << "./program Animate_test_" << test << " Locations_test_1 Nematic_test_1 \n";
+	ofs << "./program Animate_test_" << test << " Division_test_" << test << " Nematic_test_1 " << divDataCutoff << "\n";
 	ofs.close();
 
 

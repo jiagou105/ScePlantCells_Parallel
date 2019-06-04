@@ -46,25 +46,19 @@ Tissue::Tissue(string filename) {
 
 		if (temp == "CellRank") {
 			ss >> rank;
-		}
-		else if (temp == "Center") {
+		} else if (temp == "Center") {
 			ss >> x >> trash >> y;
 			Coord loc(x,y);
 			center = loc;
-		}
-		else if (temp == "Radius") {
+		} else if (temp == "Radius") {
 			ss >> radius;
-		}
-		else if (temp == "Layer") {
+		} else if (temp == "Layer") {
 			ss >> layer;
-		}
-		else if (temp == "Boundary"){
+		} else if (temp == "Boundary") {
 			ss >> boundary;
-		}
-		else if(temp == "Stem"){
+		} else if(temp == "Stem"){
 			ss >> stem;
-		}
-		else if (temp == "End_Cell") {
+		} else if (temp == "End_Cell") {
 			//create new cell with collected data 
 			//and push onto vector that holds all cells in tissue 
 			//cout<< "making a cell" << endl;
@@ -92,6 +86,7 @@ void Tissue::get_Cells(vector<shared_ptr<Cell>>& cells) {
 	cells = this->cells;
 	return;
 }
+
 void Tissue::update_Num_Cells(shared_ptr<Cell>& new_Cell) {
 	num_cells++;
 	//cout << num_cells << endl;
@@ -149,9 +144,9 @@ void Tissue::update_Linear_Bending_Springs(){
 //**********updates cell cycle of each cell************//
 void Tissue::update_Cell_Cycle(int Ti) {
 	//cout << "Current number of cells: " << cells.size() << endl; 
-	int number_cells = cells.size();
+	unsigned int number_cells = cells.size();
 	#pragma omp parallel for schedule(static,1)
-	for (unsigned int i = 0; i < cells.size(); i++) {
+	for (unsigned int i = 0; i < number_cells; i++) {
 
 		//cout << "updating cell" << i << endl;
 
@@ -161,22 +156,22 @@ void Tissue::update_Cell_Cycle(int Ti) {
 	return;
 
 }
-void Tissue::division_check(double time){
-	int number_cells = cells.size();
+bool Tissue::division_check(double time) {
+	bool divided = false;
+	unsigned int number_cells = cells.size();
 	//#pragma omp parallel for schedule(static,1)
-	for (unsigned int i = 0; i < cells.size(); i++) {
+	for (unsigned int i = 0; i < number_cells; i++) {
 		//cout << "dating cell" << i << endl;
 		vector<double> currDivData;
 		currDivData.push_back(time);
-		bool division_happened = cells.at(i)->division_check(currDivData);
-		if (division_happened) { 
+		divided = cells.at(i)->division_check(currDivData);
+		if (divided) { 
 			numDivs++;
 			div_info.push_back(currDivData);
 			cout << "Division Data updated" << endl;
 		}
-
 	}
-	return;
+	return divided;
 }
 	
 //calculates the forces for nodes of  each cell 
@@ -198,6 +193,28 @@ void Tissue::update_Cell_Locations() {
 		cells.at(i)->update_Node_Locations();
 	}
 
+	return;
+}
+
+void Tissue::peel() { 
+	#pragma omp parallel for schedule(static,1)	
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->peel();
+	}
+}
+
+void Tissue::update_R_eff() { 
+	//This should be a function of WUS later on.
+	R_eff = R_BASE; 
+	return;
+}
+
+void Tissue::update_Tissue_Center() { 
+	Coord cent(0,0);
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cent = cent + cells.at(i)->get_Cell_Center();
+	}
+	tissue_center = cent / static_cast<double>(cells.size());
 	return;
 }
 
@@ -308,7 +325,7 @@ void Tissue::print_VTK_Direction_File(ofstream& ofs){
 	//Need total number of points for all cells
 	int num_Points = 0;
 	for (unsigned int i = 0; i < cells.size(); i++){
-		num_Points = num_Points+2;;
+		num_Points = num_Points + 2;;
 	}
 
 	ofs << "POINTS " << num_Points << " float" << endl;
@@ -322,7 +339,7 @@ void Tissue::print_VTK_Direction_File(ofstream& ofs){
 	ofs << "CELLS " << cells.size() << ' ' << 2*cells.size() << endl;
 	
 	int k = 0;
-	for(unsigned int i = 0; i< cells.size() ; i++) {
+	for(unsigned int i = 0; i < cells.size() ; i++) {
 		ofs << 1 << ' ' << k << endl;
 		k++;
 	}
@@ -330,7 +347,7 @@ void Tissue::print_VTK_Direction_File(ofstream& ofs){
 	ofs << endl;
 
 	ofs << "CELL_TYPES " << cells.size() << endl;
-	for (unsigned int i = 0; i < cells.size(); i++){
+	for (unsigned int i = 0; i < cells.size(); i++) {
 		ofs << 1 << endl;
 	}
 	return;
@@ -368,7 +385,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	//ofs << "CELLS " << cells.size()<< ' ' << (num_Points + start_points.size())  << endl;
 	
 	//to be used for visualizing adh springs
-	ofs << "CELLS " << cells.size()+rel_cnt<< ' ' << (num_Points + start_points.size())+(rel_cnt*3)  << endl;
+	ofs << "CELLS " << cells.size() + rel_cnt << ' ' << (num_Points + start_points.size()) + (rel_cnt * 3)  << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		ofs << cells.at(i)->get_Node_Count();
 
@@ -394,7 +411,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 		ofs << 2 << endl;
 	}
 
-	for(unsigned int i = 0; i < rel_cnt; i++) {
+	for(int i = 0; i < rel_cnt; i++) {
 		//type for adh relationship
 		ofs << 3 << endl;
 	}
@@ -419,6 +436,7 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 	}
 
 	ofs << endl;
+
 	/*ofs << "Scalars average_pressure float" << endl;
 	ofs << "LOOKUP_TABLE default" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
@@ -433,6 +451,23 @@ void Tissue::print_VTK_File(ofstream& ofs) {
 		cells.at(i)->print_VTK_Scalars_Node(ofs);
 	}
 	return;
+}
+
+void Tissue::print_Div_Info(ofstream& ofs) { 
+	if ( div_info.size() == 0 ) { 
+		ofs << "No divisions." << endl;
+		return;
+	}
+	int vectorlength = (div_info.at(0)).size();
+	for (int i = 0; i < numDivs; i++ ) { 
+		for (int j = 0; j < vectorlength; j++) { 
+			ofs << (div_info.at(i)).at(j);
+			if (j != vectorlength - 2) ofs << ", ";
+		}
+		ofs << endl;
+	}
+	return;
+	
 }
 
 
