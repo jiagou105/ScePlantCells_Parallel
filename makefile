@@ -27,6 +27,21 @@ cell_div.o: cell_div.cpp
 
 tissue.o: tissue.cpp
 	$(CXX) $(CXXFLAGS) -c tissue.cpp
+	
+Signal_Calculator.o: Signal_Calulator.cpp
+	$(CXX) $(CXXFLAGS) -c Signal_Calculator.cpp
+
+common.o: common.cpp
+	$(CXX) $(CXXFLAGS) -c common.cpp
+
+MeshCell.o: MeshCell.cpp
+	$(CXX) $(CXXFLAGS) -c MeshCell.cpp
+	
+Mesh.o: Mesh.cpp
+	$(CXX) $(CXXFLAGS) -c Mesh.cpp
+
+MeshTissue.o: MeshTissue.cpp
+	$(CXX) $(CXXFLAGS) -c MeshTissue.cpp
 
 rand.o: rand.cpp
 	$(CXX) $(CXXFLAGS) -c rand.cpp

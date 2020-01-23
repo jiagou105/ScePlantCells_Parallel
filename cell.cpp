@@ -370,6 +370,10 @@ void Cell::calc_WUS(Coord L1_AVG) {
 	//}
 	return;
 }
+void Cell::set_WUS(double w) { 
+	this->wuschel = w;
+	return;
+}
 void Cell::calc_CK(Coord L1_AVG) {
 	double distance = (cell_center-(L1_AVG-Coord(0,21))).length();
 	distance = distance * CK_RAD_CONTRACTION_FACTOR;
@@ -381,6 +385,10 @@ void Cell::calc_CK(Coord L1_AVG) {
 	}
 
 
+	return;
+}
+void Cell::set_CK(double c) { 
+	this->cytokinin = c;
 	return;
 }
 void Cell::set_growth_rate(bool first_growth_rate) {
@@ -1630,6 +1638,30 @@ void Cell::add_Cyt_Node() {
 	num_cyt_nodes++;
 	return;
 }
+
+
+//===========================================================
+//==================================
+// Dynamic Signaling Functions
+//==================================
+//===========================================================
+
+vector<double> Cell::wall_X_Coords() { 
+	vector<double> Xvec;
+	for (int i = 0; i < num_wall_nodes; i++) { 
+		Xvec.push_back(wall_nodes.at(i)->get_Location().get_X());
+	}
+	return Xvec;
+}
+vector<double> Cell::wall_Y_Coords() {
+	vector<double> Yvec;
+	for (int i = 0; i < num_wall_nodes; i++) { 
+		Yvec.push_back(wall_nodes.at(i)->get_Location().get_Y());
+	}
+	return Yvec;
+}
+
+
 //===========================================================
 //==================================
 // Output Functions

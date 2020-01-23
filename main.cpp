@@ -21,9 +21,11 @@
 #include "node.h"
 #include "cell.h"
 #include "tissue.h"
+//Dynamic Signal include
+//#include "Signal_Calculator.h"
+
 //#include "rand.h"
 //==============================
-//TEST
 
 using namespace std;
 
@@ -176,12 +178,12 @@ int main(int argc, char* argv[]) {
 			growing_Tissue.update_Neighbor_Cells();
 		}	
 
-		if(Ti == 10000) {
+		/*if(Ti == 10000) {
 			growing_Tissue.update_Signal(false);
-		}
+		}*/
 		if(Ti % 5000 == 0) {
 			//cout << "update signal" << endl;
-			growing_Tissue.update_Signal(false);
+			growing_Tissue.update_Signal_Dynamic();
 			//growing_Tissue.update_growth_direction();
 		}
 		//adds one new cell wall node per cell everytime it is called
