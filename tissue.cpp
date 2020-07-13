@@ -15,6 +15,7 @@
 #include "coord.h"
 #include "cell.h"
 #include "tissue.h"
+#include "Signal_Calculator.h"
 //=========================
 // Public Member Functions for Tissue.cpp
 //tissue constructor makes new tissue from 
@@ -395,6 +396,34 @@ void Tissue::update_Avg_Cell_Diameter() {
 	this->avg_cell_diam = acd / static_cast<double>(count);
 }
 
+void Tissue::update_Signal_Dynamic(){
+	for(int i = 0; i < num_cells; i++) {
+		cells.at(i)->update_Cell_Center();
+		//Is this necessary?
+	}
+	vector<vector<double>> signals;
+	vector<vector<double>> locX;
+	vector<vector<double>> locY;
+	vector<double> cntX;
+	vector<double> cntY;
+	for(int i = 0; i < num_cells; i++){
+		locX.push_back(cells.at(i)->wall_X_Coords());
+		locY.push_back(cells.at(i)->wall_Y_Coords());
+		cntX.push_back(cells.at(i)->get_Cell_Center().get_X());
+		cntY.push_back(cells.at(i)->get_Cell_Center().get_Y());
+	}
+	signals = Signal_Calculator(locX,locY,cntX,cntY); 
+	double new_wus,new_ck;
+	for(int i = 0; i < num_cells; i++){
+		new_wus = signals.at(0).at(i);
+		new_ck = signals.at(1).at(i);
+		cells.at(i)->set_WUS(new_wus);
+		cells.at(i)->set_CK(new_ck);
+		cells.at(i)->set_growth_rate(false);
+	}
+	return;
+
+}
 void Tissue::update_growth_direction(){
 	
 	for(int i = 0; i < num_cells; i++){

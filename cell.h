@@ -111,8 +111,10 @@ class Cell: public enable_shared_from_this<Cell> {
 		Coord get_Cell_Center() {return cell_center;}
 		//set/get WUS conc
 		void calc_WUS(Coord L1_AVG, double WUS_dropdown);
-		double get_WUS_concentration() {return wuschel;}
 		void calc_CK(Coord L1_AVG, double CK_dropdown);
+		void set_WUS(double w);
+		double get_WUS_concentration() {return wuschel;}
+		void set_CK(double c);
 		double get_CYT_concentration() {return cytokinin;}
 		double getRandomDoubleUsingNormalDistribution(double mean, double sigma);
 		//set growth rate based on WUS
@@ -187,6 +189,12 @@ class Cell: public enable_shared_from_this<Cell> {
 		void move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_Node> second, vector<shared_ptr<Wall_Node>>& daughter_ends);
 		void move_cyt_nodes(Coord center_pt);
 		Coord produce_random_vec();	
+
+
+		//Functions for Dynamic Signaling
+		vector<double> wall_X_Coords();
+		vector<double> wall_Y_Coords();
+
 		//Output Functions
 		void print_Data_Output(ofstream& ofs);
 		int update_VTK_Indices(int& id,bool cytoplasm);
