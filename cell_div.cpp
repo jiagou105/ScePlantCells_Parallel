@@ -458,6 +458,88 @@ void Cell::find_nodes_for_div_plane_mechanical(vector<shared_ptr<Wall_Node>>& no
 	return;
 }
 
+Coord Cell::find_orientation_circ() {
+	//Find neighbors in this layer
+	Coord orientation;
+	vector<shared_ptr<Cell>> my_adh_neighbors;
+	vector<shared_ptr<Cell>> adh_neighbors_this_layer;
+	this->get_ADH_Neighbors_Vec(adh_neighbors);
+
+	for (unsigned int i = 0; i < my_adh_neighbors.size(); i++) { 
+		if (my_adh_neighbors.at(i)->get_Layer() == this->get_Layer()) {
+			adh_neighbors_this_layer.push_back(my_adh_neighbors.at(i));
+		}
+	}
+	//Check to see if there are two of them.
+	
+	if (adh_neighbors_this_layer.size() == 2) { 
+		//Circle fit division plane orientation
+
+		Coord here = this->get_Cell_Center();
+		Coord right_loc = adh_neighbors_this_layer.at(0)->get_Cell_Center();
+		Coord left_loc = adh_neighbors_this_layer.at(1)->get_Cell_Center();
+		double x1, y1, x2, y2, x3, y3;
+		x1 = here.get_X();
+		y1 = here.get_Y();
+		x2 = right_loc.get_X();
+		y2 = right_loc.get_Y();
+		x3 = left_loc.get_X();
+		y3 = left_loc.get_Y();
+
+		double x12 = x1 - x2; 
+		double x13 = x1 - x3; 
+
+		double y12 = y1 - y2; 
+		double y13 = y1 - y3; 
+
+		double y31 = y3 - y1; 
+		double y21 = y2 - y1; 
+
+		double x31 = x3 - x1; 
+		double x21 = x2 - x1; 
+		// x1^2 - x3^2 
+		double sx13 = pow(x1, 2) - pow(x3, 2); 
+
+		// y1^2 - y3^2 
+		double sy13 = pow(y1, 2) - pow(y3, 2); 
+
+		double sx21 = pow(x2, 2) - pow(x1, 2); 
+		double sy21 = pow(y2, 2) - pow(y1, 2); 
+
+		double f = ((sx13) * (x12) 
+				+ (sy13) * (x12) 
+				+ (sx21) * (x13) 
+				+ (sy21) * (x13)) 
+			/ (2 * ((y31) * (x12) - (y21) * (x13))); 
+		double g = ((sx13) * (y12) 
+				+ (sy13) * (y12) 
+				+ (sx21) * (y13) 
+				+ (sy21) * (y13)) 
+			/ (2 * ((x31) * (y12) - (x21) * (y13))); 
+
+		//double c = -pow(x1, 2) - pow(y1, 2) - 2 * g * x1 - 2 * f * y1; 
+		//In case I need this, the radius can be calculate with c.
+
+		// eqn of circle be x^2 + y^2 + 2*g*x + 2*f*y + c = 0 
+		// where centre is (h = -g, k = -f) and radius r 
+		// as r^2 = h^2 + k^2 - c 
+		double h = -g; 
+		double k = -f; 
+
+		orientation = this->get_Cell_Center() - Coord(h,k);
+	} else {
+		//Tissue base approximation via semicircular tissue
+		vector<shared_ptr<Cell>> cells;
+		this->my_tissue->get_Cells(cells);
+		Coord tissue_base_location = cells.at(TISSUE_BASE)->get_Cell_Center();
+		Coord pre_orientation = this->get_Cell_Center() - tissue_base_location;
+		orientation = pre_orientation / pre_orientation.length();
+	}
+
+
+	return orientation;
+}
+
 shared_ptr<Cell> Cell::division() {
 	//current cell will split into two daughter cells
 	//	-"this" will keep its entity as parent cell
@@ -507,14 +589,14 @@ shared_ptr<Cell> Cell::division() {
 
 	vector<shared_ptr<Cell>> cells;
 	my_tissue->get_Cells(cells);
-	Coord tissue_base_location = cells.at(TISSUE_BASE)->get_Cell_Center();
+	//Coord tissue_base_location = cells.at(TISSUE_BASE)->get_Cell_Center();
 
 	if (forced_anticlinal) { 
 
 		//orientation = Coord(0,1);
-		Coord pre_orientation = this->get_Cell_Center() - tissue_base_location;
-		orientation = pre_orientation / pre_orientation.length();
-
+		//Coord pre_orientation = this->get_Cell_Center() - tissue_base_location;
+		//orientation = pre_orientation / pre_orientation.length();
+		orientation = find_orientation_circ();
 		find_nodes_for_div_plane(orientation,nodes,11);
 
 

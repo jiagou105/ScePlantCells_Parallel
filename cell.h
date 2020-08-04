@@ -187,6 +187,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void move_start_end_points(shared_ptr<Wall_Node> first, shared_ptr<Wall_Node> second, vector<shared_ptr<Wall_Node>>& daughter_ends);
 		void move_cyt_nodes(Coord center_pt);
 		Coord produce_random_vec();	
+		Coord find_orientation_circ();
 		//Output Functions
 		void print_Data_Output(ofstream& ofs);
 		int update_VTK_Indices(int& id,bool cytoplasm);
