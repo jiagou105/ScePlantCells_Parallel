@@ -34,6 +34,8 @@ class Tissue {
 		int num_divs;
 		double avg_cell_diam;
 		Coord top_cell_center;
+		Coord left_boundary_dir;
+		Coord right_boundary_dir;
 		mt19937 gen;
 		vector<int> dist1;
 		vector<int> dist2;
@@ -55,6 +57,7 @@ class Tissue {
 		double get_Avg_Cell_Diameter() {return avg_cell_diam;}
 		int return_counts(int index);
 		void set_up_counts();
+		void identify_Boundaries();
 		void set_counts(int index);
 		void assign_dist_vecs(vector<int> dist1, vector<int>dist2, vector<int> dist3, vector<int> dist4);
 		int get_next_random(int dist, int count);
@@ -65,6 +68,12 @@ class Tissue {
 		void delete_Wall(int Ti);
 		void update_Adhesion();
 		double get_normal_number(double mean, double sigma); //mt19937 get_Random_Generator(){return gen;}
+		
+		// Boundary Functions
+
+		void update_Boundary_Directions();
+		Coord get_Right_Boundary_Direction(){return right_boundary_dir;}
+		Coord get_Left_Boundary_Direction(){return left_boundary_dir;}
 		// Not in use --------
 		void update_Linear_Bending_Springs();
 		// ------

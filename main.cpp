@@ -32,17 +32,22 @@ using namespace std;
 bool OUT_OF_PLANE_GROWTH = true; //./batchGenerator -flag OOP_off
 bool WUS_LEVEL = false;
 //EXPERIMENTAL PARAMTERS
-double OOP_PROBABILITY = 0.3; //Defaults to 0.3
+bool UNIFORM_OOP_DIST = false; // Flag -Unif <1 or 1>
+double OOP_PROBABILITY = 0.3; // UNIFORM ONLY - Defaults to 0.3
 double MECH_DIV_PROB = 0.5;
 int DIV_MECHANISM = 1; //./batchGenerator -par -div <int>
 //1 - Errera, 2 - Chem, 3 - Mech, 4 - Merged
 double WUS_RAD_CONTRACTION_FACTOR = 1;//./batchGenerator -par -WR <double>
 double CK_RAD_CONTRACTION_FACTOR = 1; //./batchGenerator -par -CKR <double>
+int PRINT_VTKS = true; // ./batchGenerator -par -PRINT <1 or 0>
 int TENSILE_CALC = 4; //./batchGenerator -par TC <int> 
 int NUM_STEPS_PER_FRAME = 2500;
 int VTK_PER_DATA_POINT = 5;
 int RECENT_DIV_NUM_FRAMES = 10;
 bool CHEMICAL_GD = true; //./batchGenerator -par -Chem_GD <1 or 0>
+bool BOUNDARY_PULL = true; //./batchGenerator -par -BP <1 or 0>
+int BOUNDARY_PULL_TYPE = 1; // ./batchGenerator -par -BPT 
+double BOUNDARY_FORCE_MAGNITUDE = 3; // ./batchGenerator -par -BFM
 int Weird_WUS = 0;
 //Must be declared in externs.h
 //For clarity, listed as comments in phys.h
@@ -80,14 +85,24 @@ int main(int argc, char* argv[]) {
 			TENSILE_CALC = stoi(argv[i+1]);
 		} else if (!strcmp(argv[i], "-OOP_off")) { 
 			OUT_OF_PLANE_GROWTH = false;
+		} else if (!strcmp(argv[i], "-Unif")) { 
+			UNIFORM_OOP_DIST = stoi(argv[i+1]) ? true : false;
 		} else if (!strcmp(argv[i], "-OOP_P")) { 
 			OOP_PROBABILITY = stod(argv[i+1]);
 		} else if (!strcmp(argv[i], "-Chem_GD")) { 
 			CHEMICAL_GD = stoi(argv[i+1]) ? true : false;
-		}else if(!strcmp(argv[i], "-WUS_loc")) {
+		} else if (!strcmp(argv[i], "-PRINT")) { 
+			PRINT_VTKS = stoi(argv[i+1]) ? true : false;
+		} else if(!strcmp(argv[i], "-WUS_loc")) {
 			Weird_WUS = stoi(argv[i+1]);
-		}else if(!strcmp(argv[i], "-WUS_change")) {
+		} else if(!strcmp(argv[i], "-WUS_change")) {
 			WUS_LEVEL = stoi(argv[i+1]) ? true : false;
+		} else if (!strcmp(argv[i], "-BP")) { 
+			BOUNDARY_PULL = stoi(argv[i+1]) ? true : false;
+		} else if (!strcmp(argv[i], "-BPT")) { 
+			BOUNDARY_PULL_TYPE = stoi(argv[i+1]);
+		} else if (!strcmp(argv[i], "-BFM")) { 
+			BOUNDARY_FORCE_MAGNITUDE = stod(argv[i+1]);
 		}
 	}
 	if (DIV_MECHANISM == 0) { 
@@ -261,6 +276,13 @@ int main(int argc, char* argv[]) {
 				growing_Tissue.update_Adhesion();
 			}
 		}
+
+		//Defines boundary nodes for pulling after the first
+		//adhesion connections are formed.
+		if(Ti == 0) { 
+			growing_Tissue.identify_Boundaries();
+		}
+
 		//adds internal node according to 
 		//individual cell growth rate
 		if (Ti >= 10000){
@@ -284,40 +306,44 @@ int main(int argc, char* argv[]) {
 		//cout << "Finished" << endl;
 
 		// print to dataOutput and vtk files
-		if(Ti % NUM_STEPS_PER_FRAME == 0) {
-			digits = ceil(log10(out + 1));
-			if (digits == 1 || digits == 0) {
-				Number = "0000" + to_string(out);
-			}	
-			else if (digits == 2) {
-				Number = "000" + to_string(out);
-			}	
-			else if (digits == 3) {
-				Number = "00" + to_string(out);
+
+		if (PRINT_VTKS) { 
+
+			if(Ti % NUM_STEPS_PER_FRAME == 0) {
+				digits = ceil(log10(out + 1));
+				if (digits == 1 || digits == 0) {
+					Number = "0000" + to_string(out);
+				}	
+				else if (digits == 2) {
+					Number = "000" + to_string(out);
+				}	
+				else if (digits == 3) {
+					Number = "00" + to_string(out);
+				}
+				else if (digits == 4) {
+					Number = "0" + to_string(out);
+				}
+
+				Filename = anim_folder + initial + Number + format;
+
+				ofs_anim.open(Filename.c_str());
+				//true is in reference to printing cytoplasm
+				//THIS MUST BE RUN FIRST: Tensile stress is calculated
+				//once for this, and NOT before the next to prevent
+				//double-calculating.
+				growing_Tissue.one_To_One_Check();
+				growing_Tissue.print_VTK_File(ofs_anim,true);
+				ofs_anim.close();	
+
+				noCyt_Filename = no_cyt_folder + no_cyt_initial + Number + format;
+
+				ofs_noCyt.open(noCyt_Filename.c_str());
+				//false is in reference to printing cytoplasm
+				growing_Tissue.print_VTK_File(ofs_noCyt,false);
+				ofs_noCyt.close();	
+
+				out++;
 			}
-			else if (digits == 4) {
-				Number = "0" + to_string(out);
-			}
-
-			Filename = anim_folder + initial + Number + format;
-
-			ofs_anim.open(Filename.c_str());
-			//true is in reference to printing cytoplasm
-			//THIS MUST BE RUN FIRST: Tensile stress is calculated
-			//once for this, and NOT before the next to prevent
-			//double-calculating.
-			growing_Tissue.one_To_One_Check();
-			growing_Tissue.print_VTK_File(ofs_anim,true);
-			ofs_anim.close();	
-
-			noCyt_Filename = no_cyt_folder + no_cyt_initial + Number + format;
-
-			ofs_noCyt.open(noCyt_Filename.c_str());
-			//false is in reference to printing cytoplasm
-			growing_Tissue.print_VTK_File(ofs_noCyt,false);
-			ofs_noCyt.close();	
-
-			out++;
 		}
 		//growing_Tissue.BAD_CATCH(11,Ti);
 		/*if(Ti%1000==0) {
@@ -372,10 +398,10 @@ int main(int argc, char* argv[]) {
 			growing_Tissue.locations_output(ofs_loc_no_cyt,false,Ti);
 			ofs_loc_no_cyt.close();
 			out2 += VTK_PER_DATA_POINT;
-			Locations_cyt = locations_cyt_folder + locations_initial + to_string(out3) + ".txt";
-			ofs_loc_cyt.open(Locations_cyt.c_str());
-			growing_Tissue.locations_output(ofs_loc_cyt,true,Ti);
-			ofs_loc_cyt.close();
+			//Locations_cyt = locations_cyt_folder + locations_initial + to_string(out3) + ".txt";
+			//ofs_loc_cyt.open(Locations_cyt.c_str());
+			//growing_Tissue.locations_output(ofs_loc_cyt,true,Ti);
+			//ofs_loc_cyt.close();
 			out3 += VTK_PER_DATA_POINT;
 
 			//TISSUE MUST BE RUN FIRST.  It updates

@@ -27,10 +27,13 @@ int main(int argc, char* argv[]) {
 	char WUS_CF[100]= "";
 	char CK_CF[100] = "";
 	char WUS_LEVEL[100] = "";
-	string bigdata_path = "/bigdata/wchenlab/shared/Rand_Init_Sims/";
+	//Include trailing / in string
+	string bigdata_path = "/bigdata/wchenlab/shared/Pull_Tests/PT7/";
 	string final_path;
 	int divDataCutoff;
 	bool bigdata = false;
+	bool printing_vtks = true;
+	bool printing_nematic = false;
 
 	for (int i = 1; i < argc; i++) { 
 		if (!strcmp(argv[i], "-p")) { 
@@ -47,6 +50,10 @@ int main(int argc, char* argv[]) {
 			strcpy(nodes, argv[i+1]);
 		} else if (!strcmp(argv[i], "-mem")) { 
 			strcpy(mem, argv[i+1]);
+		} else if (!strcmp(argv[i], "-PRINT")) { 
+			printing_vtks = (strcmp(argv[i+1], "0") == 0) ? false : true;
+		} else if (!strcmp(argv[i], "-PRINT_NEMATIC")) { 
+			printing_vtks = (strcmp(argv[i+1], "1") == 0) ? true : false;
 		} else if (!strcmp(argv[i], "-help")) { 
 			goto helplabel;
 		} else if (!strcmp(argv[i], "-par")) {
@@ -123,10 +130,10 @@ int main(int argc, char* argv[]) {
 	ofs << "#SBATCH -p " << p << " \n";
 	//ofs << "SBATCH whatever thing for reservation... 
 	ofs << "export OMP_NUM_THREADS=" << cores << "\n";
-	ofs << "mkdir " << final_path << "Animate_Cyt_" << test << "\n";
-	ofs << "mkdir " << final_path << "Nematic_test_" << test <<"\n";
+	if (printing_vtks) ofs << "mkdir " << final_path << "Animate_Cyt_" << test << "\n";
+	if (printing_nematic) ofs << "mkdir " << final_path << "Nematic_test_" << test <<"\n";
 	ofs << "mkdir " << final_path << "Locations_test_" << test << "\n";
-	ofs << "mkdir " << final_path << "Animate_No_Cyt_" << test << "\n";
+	if (printing_vtks) ofs << "mkdir " << final_path << "Animate_No_Cyt_" << test << "\n";
 	ofs << "mkdir " << final_path << "Cell_Data_" << test << "\n";
 	ofs << "mkdir " << final_path << "Tissue_Data_" << test << "\n";
 	ofs << "./program " << final_path << "Animate_Cyt_" << test << " " 

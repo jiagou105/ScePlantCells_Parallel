@@ -13,6 +13,7 @@
 #include "node.h"
 #include "cell.h"
 #include "tissue.h"
+#include "externs.h"
 //=========================
 
 //========================================
@@ -188,6 +189,7 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	//this->closest = NULL;
 	//this->closest_len = 100;
 	//adhesion pairs vec
+	this->set_Is_Boundary(false);
 }
 
 Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right) : Node(loc)   {
@@ -206,6 +208,7 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> l
 	//this->closest = NULL;
 	//this->closest_len = 100;
 	//adhesion pairs vec
+	this->set_Is_Boundary(false);
 }
 
 Wall_Node::~Wall_Node() {
@@ -220,6 +223,10 @@ void Wall_Node::set_Left_Neighbor(shared_ptr<Wall_Node> new_Left) {
 }
 void Wall_Node::set_Right_Neighbor(shared_ptr<Wall_Node> new_Right) {
 	this->right = new_Right;
+	return;
+}
+void Wall_Node::set_Is_Boundary(bool status) { 
+	this->is_boundary = status;
 	return;
 }
 void Wall_Node::update_Cell(shared_ptr<Cell> new_cell) {
@@ -512,6 +519,38 @@ void Wall_Node::calc_Forces(int Ti) {
 	//adhesion between neighboring cell
 	sum += calc_Morse_DC(Ti);
 	//cout << "DC Success" << calc_Morse_DC(Ti) << endl;
+	
+	bool boundary_check = this->is_Boundary() && BOUNDARY_PULL;
+	
+	if (boundary_check) { 
+		int layer = get_My_Cell()->get_Layer();
+		switch(BOUNDARY_PULL_TYPE) {
+			case 1:
+				//Layer 1 pulled
+				boundary_check &= (layer == 1);
+				break;
+			case 2:
+				//Layers 1 and 2 pulled
+				boundary_check &= (layer == 1) || (layer == 2);
+					break;
+			case 3: 
+				//All layers pulled
+				//Do nothing, this->is_Boundary() is already enough.
+				break;
+			default:
+				//Exit program, invalid parameter entered!
+				cout << "ERR: Invalid BOUNDARY_PULL_TYPE!" << endl;
+				exit(1);
+				break;
+		}
+
+
+		if (boundary_check) { 
+			sum += calc_Boundary_Force(Ti);
+		}
+
+	}
+
 	new_force = sum;
 	return;
 }
@@ -602,6 +641,43 @@ Coord Wall_Node::neighbor_nodes(shared_ptr<Cell> neighbor, int Ti) {
 	//cout<< "Sum: " << sum << endl;
 	return sum;
 }			
+/* DEPRECATED: Uses static boundary directions
+Coord Wall_Node::calc_Boundary_Force(int Ti) { 
+	double x2 = BOUNDARY_X2;
+	double x1 = BOUNDARY_X1;
+	double y2 = BOUNDARY_Y2;
+	double y1 = BOUNDARY_Y1;
+	Coord direction;
+	if (get_Location().get_X() > 0) { 
+		//Right side of SAM boundary
+		direction = Coord(x2-x1,y2-y1).perpVector();
+	} else { 
+		//Left side of SAM boundary
+		direction = Coord(x1-x2,y2-y1).perpVector();
+	}
+	if (direction.get_Y() > 0) { 
+		direction = Coord(0,0) - direction;
+	}
+	direction = direction * BOUNDARY_FORCE_MAGNITUDE; 
+	return direction;
+}
+*/
+Coord Wall_Node::calc_Boundary_Force(int Ti) { 
+	Coord direction;
+	if (get_Location().get_X() > 0) { 
+		//Right side of SAM boundary
+		direction = get_My_Cell()->get_Tissue()->get_Right_Boundary_Direction();
+	} else { 
+		//Left side of SAM boundary
+		direction = get_My_Cell()->get_Tissue()->get_Left_Boundary_Direction();
+	}
+	if (direction.get_Y() > 0) { 
+		direction = Coord(0,0) - direction;
+	}
+	direction = direction * BOUNDARY_FORCE_MAGNITUDE; 
+	return direction;
+}
+
 //===========================================================
 // Mathematical force calculations
 Coord Wall_Node::morse_Equation(shared_ptr<Cyt_Node> cyt, int Ti) {

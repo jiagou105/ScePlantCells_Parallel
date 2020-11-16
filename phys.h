@@ -33,7 +33,7 @@ const double HIGH_ANGLE_DISCOUNT = 0.95;
 const int CORNER_RADIUS= 4;
 const double ADD_WALL_NODE_ANGLE_FIRST_QUAD =.436;
 const double ADD_WALL_NODE_ANGLE_SECOND_QUAD = 2.0;
-const double BOUNDARY_DAMP = 1; //TEST //was used before for boundary
+const double BOUNDARY_DAMP = 1; //was used before for boundary
 const double STEM_DAMP = .1;
 const double REG_DAMP = 1;
 ////// Cell wall mechanical parameters
@@ -99,6 +99,13 @@ const bool NONLINEAR_GROWTH = true;
 
 //If the following is set to false, then boundary division will not occur. This is also true for the L1 layer.
 const bool BOUNDARY_DIVISION = false;
+//
+//These define the lines (Symmetric about zero) that define the initial boundary nodes.
+//Points defining positively-sloped line on the right
+const double BOUNDARY_X1 = 35.5;
+const double BOUNDARY_Y1 = 0;
+const double BOUNDARY_X2 = 15.5;
+const double BOUNDARY_Y2 = -40;
 //All cells with layer >= STEM_LAYER will have stem damping and effects.
 const int STEM_LAYER = 7;
 
@@ -131,6 +138,13 @@ const int STEM_LAYER = 7;
 //Probability that something will grow out of plane, recalculated
 //every division cycle.
 //double OOP_PROBABILITY = 0.5 (Default)
+const double INNER_OOP_RADIUS = 29.29/2; //Alex's data gave 29.29 avg cell diameter
+const double INNER_OOP_PROB = 0.17;
+const double OUTER_OOP_PROB = 0.13;
+const double INNER_OOP_PROB_L1 = 0.11;
+const double OUTER_OOP_PROB_L1 = 0.455;
+const double INNER_OOP_PROB_L2 = 0.2;
+const double OUTER_OOP_PROB_L2 = 0.2;
 
 
 /////// VTK parameters

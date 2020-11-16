@@ -106,6 +106,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		double get_Cell_Progress() {return Cell_Progress;}
 		double get_Init_Num_Nodes() {return init_Num_Nodes;}
 		void set_Init_Num_Nodes(double inn);
+		//Identify boundaries
+		void identify_Boundaries(); 
 		//get cell center
 		void update_Cell_Center();
 		Coord get_Cell_Center() {return cell_center;}
@@ -129,6 +131,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//set/get growing_this_cycle
 		void set_Growing_This_Cycle(bool gtc);
 		bool is_Growing_This_Cycle(){return growing_this_cycle;}
+		double calc_My_Oop_Prob();
 		void get_ADH_Neighbors_Vec(vector<shared_ptr<Cell>>& adh_neighbs);
 		//set/get left corner
 		void set_Left_Corner(shared_ptr<Wall_Node> new_left_corner);
@@ -232,6 +235,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Neighbors(ofstream& ofs, bool cytoplasm); 
 		void print_VTK_Curved(ofstream& ofs, bool cytoplasm); 
 		//void print_VTK_Corners(ofstream& ofs, bool cytoplasm);
+		void print_VTK_Boundary(ofstream& ofs, bool cytoplasm); 
 		void print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm); 
 		void print_VTK_MD(ofstream& ofs, bool cytoplasm);
 		void print_VTK_OOP(ofstream& ofs, bool cytoplasm);

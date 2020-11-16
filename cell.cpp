@@ -67,7 +67,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	set_Lineage(rank);
 	recent_div = false;
 	//Determines if this tissue is growing out of plane initially
-	if (my_tissue->unifRand()  < OOP_PROBABILITY) { 
+	if (my_tissue->unifRand()  < calc_My_Oop_Prob()) { 
 		set_Growing_This_Cycle(false);
 	} else { 
 		set_Growing_This_Cycle(true);
@@ -1096,6 +1096,7 @@ void Cell::calc_New_Forces(int Ti) {
 	//calc forces on wall nodes
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
+
 	//cout<< "walls  forces" << endl;
 #pragma omp parallel
 	{
@@ -1275,11 +1276,12 @@ void Cell::division_check() {
 		//Case where the cell "divides out of plane"
 		this->reset_Cell_Progress();
 		this->reset_Life_Length();
-		if (my_tissue->unifRand() < OOP_PROBABILITY) { 
+		if (my_tissue->unifRand() < calc_My_Oop_Prob()) { 
 			set_Growing_This_Cycle(false);
 		} else { 
 			set_Growing_This_Cycle(true);
 		}
+
 		set_Terminal(true);
 	} else if (cell_cycle_check && !boundary_check) {
 		this->reset_Cell_Progress();
@@ -1337,8 +1339,62 @@ void Cell::set_Growing_This_Cycle(bool gtc) {
 	this->growing_this_cycle = gtc;
 	return;
 }
+double Cell::calc_My_Oop_Prob() { 
+	if (UNIFORM_OOP_DIST) {
+		//If we're using uniform OoP
+		return OOP_PROBABILITY;
+	}
+	if (abs(get_Cell_Center().get_X()) < INNER_OOP_RADIUS) {
+		//If we're in the center of the SAM
+		if (layer == 1) return INNER_OOP_PROB_L1;
+		else if (layer == 2) return INNER_OOP_PROB_L2;
+		return INNER_OOP_PROB;
+	}  
+	//If we're in the periphery
+	if (layer == 1) return OUTER_OOP_PROB_L1;
+	else if (layer == 2) return OUTER_OOP_PROB_L2;
+	return OUTER_OOP_PROB;
+
+}
 void Cell::set_Init_Num_Nodes(double inn) { 
 	this->init_Num_Nodes = inn;
+	return;
+}
+void Cell::identify_Boundaries() {
+	vector<shared_ptr<Wall_Node>> walls;
+	double x2 = BOUNDARY_X2;
+	double x1 = BOUNDARY_X1;
+	double y2 = BOUNDARY_Y2;
+	double y1 = BOUNDARY_Y1;
+	double positive_m = (y2-y1)/(x2-x1);
+	//Y intercept is the same due to evenness of initial condition.
+	double y_int = positive_m*(-x1)+y1;
+	double my_x, my_y;
+	this->get_Wall_Nodes_Vec(walls);
+	shared_ptr<Wall_Node> current;
+	shared_ptr<Wall_Node> left_neighbor;
+	current = walls.at(0);
+	shared_ptr<Wall_Node> start = current;
+	do {
+		if (this->boundary == 0 || this->layer == STEM_LAYER) { 
+			current->set_Is_Boundary(false);
+		} else if (current->get_adh_vec().size() > 0)  {
+			current->set_Is_Boundary(false);
+		} else {
+			//Non-adhered boundary cells beneath line
+			my_x = current->get_Location().get_X();
+			my_y = current->get_Location().get_Y();
+			if ((my_y < (positive_m*(my_x) + y_int)) ||
+					(my_y < ((-1)*positive_m*(my_x) + y_int) )) { 
+				current->set_Is_Boundary(true);
+			}
+
+			
+		}
+		left_neighbor = current->get_Left_Neighbor();
+		current = left_neighbor;
+	} while(current != start);
+
 	return;
 }
 void Cell::add_Wall_Node_Check(int Ti) {
@@ -1470,6 +1526,13 @@ void Cell::add_Wall_Node(int Ti) {
 		update_Wall_Equi_Angles();
 		update_Wall_Angles();
 		//}
+		//
+
+		if (right->is_Boundary() || left->is_Boundary()) { 
+			added_node->set_Is_Boundary(true);
+		} else { 
+			added_node->set_Is_Boundary(false);
+		}
 	}
 	return;
 }
@@ -2278,6 +2341,29 @@ void Cell::print_VTK_Curved(ofstream& ofs, bool cytoplasm) {
 	//cout << "Corner Print - Mark 3" << endl;
 	return;
 }*/
+
+void Cell::print_VTK_Boundary(ofstream& ofs, bool cytoplasm) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	unsigned int color;
+	color = 0;
+	do {
+		color = (currW->is_Boundary() ? 1 : 0);
+		if (color > 1) { 
+			cout << "Strange Color Value: " << color << endl;
+			cout << "is_Boundary() Value: " << currW->is_Boundary() << endl;
+			color = 0;
+		}
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+
+	} while(currW != left_Corner);
+	if (cytoplasm) {
+		for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			ofs << 2 << endl;
+		}
+	}
+	return;
+}
 
 void Cell::print_VTK_MD(ofstream& ofs, bool cytoplasm) {
 	shared_ptr<Wall_Node> currW = left_Corner;

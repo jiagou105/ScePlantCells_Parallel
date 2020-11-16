@@ -77,6 +77,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		int added;
 		Coord cyt_force;
 		double tensile_stress;
+		bool is_boundary;
 		
 		//variables used for adhesion
 		vector<shared_ptr<Wall_Node>> adhesion_vector;
@@ -94,6 +95,9 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		//get left/right neighbor
 		shared_ptr<Wall_Node> get_Left_Neighbor() {return left;}
 		shared_ptr<Wall_Node> get_Right_Neighbor() {return right;}
+		//set/get is_boundary
+		bool is_Boundary() {return is_boundary;}
+		void set_Is_Boundary(bool status);
 		//set/get cell
 		void update_Cell(shared_ptr<Cell> new_cell);
 		shared_ptr<Cell> get_My_Cell() {return my_cell;}
@@ -133,6 +137,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord calc_Linear();
 		Coord calc_Bending();
 		Coord calc_Morse_DC(int Ti);
+		Coord calc_Boundary_Force(int Ti);
 		Coord neighbor_nodes(shared_ptr<Cell> neighbor,int Ti);
 		void getCircleVars(double& h, double& k);
 		Coord calc_Outward_Vector(); 

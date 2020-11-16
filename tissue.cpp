@@ -336,6 +336,12 @@ void Tissue::set_up_counts(){
 		counts.push_back(0);
 	}
 }
+void Tissue::identify_Boundaries() { 
+	for (unsigned int i = 0; i < cells.size(); i++) { 
+		cells.at(i)->identify_Boundaries();
+	}
+	return;
+}
 int Tissue::return_counts(int index){
 	return counts.at(index);
 }
@@ -547,6 +553,19 @@ void Tissue::update_Adhesion() {
 	}
 	return;
 }
+//Updates the direction that boundaries are stretched
+void Tissue:: update_Boundary_Directions() {
+	Coord left_top = cells.at(9)->get_Cell_Center();
+	Coord left_bot = cells.at(44)->get_Cell_Center();
+	Coord right_top = cells.at(8)->get_Cell_Center();
+	Coord right_bot = cells.at(43)->get_Cell_Center();
+	Coord proto_left = (left_top - left_bot).perpVector();
+	Coord proto_right = (right_top - right_bot).perpVector();
+	
+	left_boundary_dir = (proto_left.get_Y() > 0) ? proto_left : Coord(0,0) - proto_left;
+	right_boundary_dir = (proto_right.get_Y() > 0) ? proto_right : Coord(0,0) - proto_right;
+	return;
+}
 //this function is not in use
 void Tissue::update_Linear_Bending_Springs(){
 	#pragma omp parallel for schedule(static,1)
@@ -605,6 +624,7 @@ void Tissue::update_Divplane_Vector(Coord plane, int layer_of_div) {
 	
 //calculates the forces for nodes of  each cell 
 void Tissue::calc_New_Forces(int Ti) {
+	this->update_Boundary_Directions();
 	#pragma omp parallel for schedule(static,1)
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		
@@ -925,6 +945,14 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 	ofs << "LOOKUP_TABLE discrete_colors" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Neighbors(ofs, cytoplasm);
+	}
+
+	ofs << endl;
+
+	ofs << "Scalars Boundary float64" << 1 << endl;
+	ofs << "LOOKUP_TABLE discrete_colors" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Boundary(ofs, cytoplasm);
 	}
 
 	ofs << endl;

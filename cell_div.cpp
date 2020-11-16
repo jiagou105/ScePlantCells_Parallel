@@ -873,7 +873,8 @@ shared_ptr<Cell> Cell::division() {
 	this->update_growth_direction();
 	sister->update_growth_direction();
 
-	if(my_tissue->unifRand() < OOP_PROBABILITY) { 
+	
+	if(my_tissue->unifRand() < calc_My_Oop_Prob()) { 
 		sister->set_Growing_This_Cycle(false);
 	} else { 
 		sister->set_Growing_This_Cycle(true);
