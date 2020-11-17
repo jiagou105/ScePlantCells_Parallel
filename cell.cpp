@@ -302,6 +302,26 @@ void Cell::set_Damping(double new_damping) {
 	this->damping = new_damping;
 	return;
 }
+
+int Cell::get_Num_Boundary_Nodes() {
+	if(get_Boundary() != 1) { 
+		return 0;
+	}
+	int num = 0;
+	shared_ptr<Wall_Node> curr = left_Corner;
+	shared_ptr<Wall_Node> next = NULL;
+	shared_ptr<Wall_Node> orig = curr;
+	do { 
+		next = curr->get_Left_Neighbor();
+		if (curr->is_Boundary()) {
+			num++;
+		}
+		curr = next;
+	} while(next != orig);
+
+	return num;
+}
+
 //Life length is the number of time steps this cell has lived 
 //in order to be at its current cell progress (Not actually the time since
 //creation, since changing this changes growth rate.
@@ -1102,7 +1122,7 @@ void Cell::calc_New_Forces(int Ti) {
 	{
 #pragma omp for schedule(static,1)
 		for(unsigned int i=0; i < walls.size(); i++) {
-			walls.at(i)->calc_Forces(Ti);
+			walls.at(i)->calc_Forces(my_tissue->get_Num_Boundary_Nodes(),Ti);
 		}	
 	}
 
@@ -1336,6 +1356,7 @@ void Cell::set_perimeter(double new_perimeter){
 	return;
 }
 void Cell::set_Growing_This_Cycle(bool gtc) {
+	if(!OUT_OF_PLANE_GROWTH) {gtc = true;}
 	this->growing_this_cycle = gtc;
 	return;
 }
@@ -1530,6 +1551,7 @@ void Cell::add_Wall_Node(int Ti) {
 
 		if (right->is_Boundary() || left->is_Boundary()) { 
 			added_node->set_Is_Boundary(true);
+			my_tissue->update_Num_Boundary_Nodes();
 		} else { 
 			added_node->set_Is_Boundary(false);
 		}

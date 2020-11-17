@@ -29,7 +29,7 @@ using namespace std;
 
 //FREQUENTLY CHANGED VALUES
 //Flags
-bool OUT_OF_PLANE_GROWTH = true; //./batchGenerator -flag OOP_off
+bool OUT_OF_PLANE_GROWTH = true; //./batchGenerator -par -OOP_flag <1 or 0>
 bool WUS_LEVEL = false;
 //EXPERIMENTAL PARAMTERS
 bool UNIFORM_OOP_DIST = false; // Flag -Unif <1 or 1>
@@ -47,7 +47,7 @@ int RECENT_DIV_NUM_FRAMES = 10;
 bool CHEMICAL_GD = true; //./batchGenerator -par -Chem_GD <1 or 0>
 bool BOUNDARY_PULL = true; //./batchGenerator -par -BP <1 or 0>
 int BOUNDARY_PULL_TYPE = 1; // ./batchGenerator -par -BPT 
-double BOUNDARY_FORCE_MAGNITUDE = 3; // ./batchGenerator -par -BFM
+double BOUNDARY_FORCE_MAGNITUDE = 600; // ./batchGenerator -par -BFM : Roughly 1/node as default.
 int Weird_WUS = 0;
 //Must be declared in externs.h
 //For clarity, listed as comments in phys.h
@@ -83,8 +83,8 @@ int main(int argc, char* argv[]) {
 			DIV_MECHANISM = stoi(argv[i+1]);
 		} else if (!strcmp(argv[i], "-TC")) { 
 			TENSILE_CALC = stoi(argv[i+1]);
-		} else if (!strcmp(argv[i], "-OOP_off")) { 
-			OUT_OF_PLANE_GROWTH = false;
+		} else if (!strcmp(argv[i], "-OOP_flag")) { 
+			OUT_OF_PLANE_GROWTH = stoi(argv[i+1]) ? true : false;
 		} else if (!strcmp(argv[i], "-Unif")) { 
 			UNIFORM_OOP_DIST = stoi(argv[i+1]) ? true : false;
 		} else if (!strcmp(argv[i], "-OOP_P")) { 
@@ -281,6 +281,7 @@ int main(int argc, char* argv[]) {
 		//adhesion connections are formed.
 		if(Ti == 0) { 
 			growing_Tissue.identify_Boundaries();
+			growing_Tissue.update_Num_Boundary_Nodes();
 		}
 
 		//adds internal node according to 

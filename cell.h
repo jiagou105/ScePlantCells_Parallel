@@ -78,6 +78,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		double get_Damping() {return damping;}
 		// get boundary
 		int get_Boundary() {return boundary;}
+		int get_Num_Boundary_Nodes();
 		//set/get life length
 		void update_Life_Length();
 		void rescale_Life_Length(int old_growth_rate,bool init_phase);

@@ -491,7 +491,7 @@ void Wall_Node::remove_from_adh_vecs() {
 //===========================================================
 // Calc Force Functions -----------------------
 //calculates total force on current wall node
-void Wall_Node::calc_Forces(int Ti) {
+void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 	//holds the current force from all
 	//interacting nodes
 	Coord sum;
@@ -546,7 +546,7 @@ void Wall_Node::calc_Forces(int Ti) {
 
 
 		if (boundary_check) { 
-			sum += calc_Boundary_Force(Ti);
+			sum += calc_Boundary_Force(num_boundary_nodes,Ti);
 		}
 
 	}
@@ -662,7 +662,7 @@ Coord Wall_Node::calc_Boundary_Force(int Ti) {
 	return direction;
 }
 */
-Coord Wall_Node::calc_Boundary_Force(int Ti) { 
+Coord Wall_Node::calc_Boundary_Force(int num_boundary_nodes,int Ti) { 
 	Coord direction;
 	if (get_Location().get_X() > 0) { 
 		//Right side of SAM boundary
@@ -674,7 +674,7 @@ Coord Wall_Node::calc_Boundary_Force(int Ti) {
 	if (direction.get_Y() > 0) { 
 		direction = Coord(0,0) - direction;
 	}
-	direction = direction * BOUNDARY_FORCE_MAGNITUDE; 
+	direction = direction * BOUNDARY_FORCE_MAGNITUDE / static_cast<double>(num_boundary_nodes); 
 	return direction;
 }
 

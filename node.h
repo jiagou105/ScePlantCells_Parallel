@@ -132,12 +132,12 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		void adh_push_back(shared_ptr<Wall_Node> neighbor_node);
 		void update_adh_vec(shared_ptr<Wall_Node> node);
 		//functions for calculating forces
-		void calc_Forces(int Ti);
+		void calc_Forces(int num_boundary_nodes,int Ti);
 		Coord calc_Morse_SC(int Ti);
 		Coord calc_Linear();
 		Coord calc_Bending();
 		Coord calc_Morse_DC(int Ti);
-		Coord calc_Boundary_Force(int Ti);
+		Coord calc_Boundary_Force(int num_boundary_nodes,int Ti);
 		Coord neighbor_nodes(shared_ptr<Cell> neighbor,int Ti);
 		void getCircleVars(double& h, double& k);
 		Coord calc_Outward_Vector(); 

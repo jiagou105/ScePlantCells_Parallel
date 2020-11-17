@@ -32,6 +32,7 @@ class Tissue {
 		int num_deleted;
 		int num_IP_divs;
 		int num_divs;
+		int num_boundary_nodes;
 		double avg_cell_diam;
 		Coord top_cell_center;
 		Coord left_boundary_dir;
@@ -72,6 +73,8 @@ class Tissue {
 		// Boundary Functions
 
 		void update_Boundary_Directions();
+		void update_Num_Boundary_Nodes();
+		int get_Num_Boundary_Nodes(){return num_boundary_nodes;}
 		Coord get_Right_Boundary_Direction(){return right_boundary_dir;}
 		Coord get_Left_Boundary_Direction(){return left_boundary_dir;}
 		// Not in use --------

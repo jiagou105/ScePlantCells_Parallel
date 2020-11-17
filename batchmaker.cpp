@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 	char CK_CF[100] = "";
 	char WUS_LEVEL[100] = "";
 	//Include trailing / in string
-	string bigdata_path = "/bigdata/wchenlab/shared/Pull_Tests/PT7/";
+	string bigdata_path = "/bigdata/wchenlab/shared/Pull_Tests/PT8/";
 	string final_path;
 	int divDataCutoff;
 	bool bigdata = false;

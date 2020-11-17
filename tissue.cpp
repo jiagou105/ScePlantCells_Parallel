@@ -554,7 +554,7 @@ void Tissue::update_Adhesion() {
 	return;
 }
 //Updates the direction that boundaries are stretched
-void Tissue:: update_Boundary_Directions() {
+void Tissue::update_Boundary_Directions() {
 	Coord left_top = cells.at(9)->get_Cell_Center();
 	Coord left_bot = cells.at(44)->get_Cell_Center();
 	Coord right_top = cells.at(8)->get_Cell_Center();
@@ -566,6 +566,36 @@ void Tissue:: update_Boundary_Directions() {
 	right_boundary_dir = (proto_right.get_Y() > 0) ? proto_right : Coord(0,0) - proto_right;
 	return;
 }
+
+void Tissue::update_Num_Boundary_Nodes() { 
+	num_boundary_nodes = 0;
+	shared_ptr<Cell> curr;
+	bool layer_check;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		curr = cells.at(i);
+		layer_check = (curr->get_Boundary()==1);
+		switch(BOUNDARY_PULL_TYPE) { 
+			case 1:
+				layer_check &= (curr->get_Layer() == 1);
+				break;
+			case 2:
+				layer_check &= (curr->get_Layer() == 1) || (curr->get_Layer() == 2);
+				break;
+			case 3:
+				//Do nothing; all layers are fine.
+				break;
+			default:
+				cout << "Invalid BPT!" << endl;
+				exit(1);
+		}
+		if (layer_check) {
+			num_boundary_nodes += curr->get_Num_Boundary_Nodes();
+		}
+	}
+	return;
+}
+
+
 //this function is not in use
 void Tissue::update_Linear_Bending_Springs(){
 	#pragma omp parallel for schedule(static,1)
