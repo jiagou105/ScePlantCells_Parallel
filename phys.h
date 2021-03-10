@@ -43,13 +43,13 @@ const double K_BEND_LOOSE =4.5433;//12.8128;
 //9.9898;//2.5416;//10.9974;//11.1948;//5.2617;//6.1530;//3.8290;//1.4132;//7.5802;//6.9589;//0.8149;//4.5433;//0.6185;//9.3159;//4.8077;//2.9080;//11.8757;//8.6403;//7.9421;//
 //K_LINEAR_STIFF not used
 const double K_BEND_UNIFORM = 12;
-const double K_LINEAR_STIFF = 0;
+const double K_LINEAR_STIFF = 560.3272;
 const double K_LINEAR_LOOSE =280.1636;//54.2730;
 //157.7281;//674.3111;//511.3433;//746.0824;//461.8290;//230.2545;//134.8271;//336.2897;//581.4058;//551.7969;//84.7288;//280.1636;//688.4090;//396.0437;//612.7239;//320.9386;//381.9915;//204.3934;//477.1815;//
 ////Adhesion spring mechanical params
 const double K_ADH = 12;
-const double K_ADH_L1 = 12;
-const double K_ADH_L2 = 12;
+const double K_ADH_L1 = 18;//12;
+const double K_ADH_L2 = 18;//12;
 const double K_ADH_DIV = 12;
 const double MembrEquLen_ADH = .9;
 const double ADHThresh = 2;
@@ -86,7 +86,7 @@ const double xsi_II_div = .4;
 //If the following is set to true, other division plane orientation
 //rules will be overwritten to impose L1 and L2 anticlinal division.
 //False will have it follow whatever rules deeper layers follow.
-const bool L1_L2_FORCED_ANTICLINAL_DIV = true;
+//const bool L1_L2_FORCED_ANTICLINAL_DIV = false;
 
 //If the following is set to true, then some of the L1 cells will "wait" for a growth phase to account for some cells growing out of the plane. 
 //FREQUENTLY USED PARAMETER
@@ -138,7 +138,7 @@ const int STEM_LAYER = 7;
 //Probability that something will grow out of plane, recalculated
 //every division cycle.
 //double OOP_PROBABILITY = 0.5 (Default)
-const double INNER_OOP_RADIUS = 29.29/2; //Alex's data gave 29.29 avg cell diameter
+const double INNER_OOP_RADIUS = 29.29/2; //Alex's data gave 29.29 microns
 const double INNER_OOP_PROB = 0.17;
 const double OUTER_OOP_PROB = 0.13;
 const double INNER_OOP_PROB_L1 = 0.11;

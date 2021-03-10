@@ -640,6 +640,32 @@ shared_ptr<Cell> Cell::division() {
 					find_nodes_for_div_plane_mechanical(nodes); 
 				}
 				break;
+			case 5:
+				//Layer-Specific Mechanism:
+				//L3-4 experience CAE-M (Case 3) and L5-6 experience CED (Case 2)
+				//Note that if forced L1 anticlinal is off, this defaults
+				//to CAE-M for layers 1 and 2.
+				if (this->layer <= 4) { 
+					find_nodes_for_div_plane_mechanical(nodes);
+				} else { 
+					if (HILL_PROB) { 
+						if (my_tissue->unifRand() < hill_Prob()) { 
+							//hill_Prob is the probability of periclinal.
+							orientation = Coord(1,0); //periclinal division
+						} else { 
+							//Else anticlinal
+							orientation = Coord(0,1);
+						}
+					} else { 
+						if ((this->get_CYT_concentration() > this->get_WUS_concentration())) { 
+							orientation = Coord(1,0); 
+						} else { 
+							orientation = Coord(0,1);
+						}
+					}
+					find_nodes_for_div_plane(orientation,nodes,11);
+				}
+				break;
 			default:
 				//cout << "DIV_MECH NOT ENTERED. Exiting..." << endl;
 				exit(1);

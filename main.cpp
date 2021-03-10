@@ -46,8 +46,9 @@ int VTK_PER_DATA_POINT = 5;
 int RECENT_DIV_NUM_FRAMES = 10;
 bool CHEMICAL_GD = true; //./batchGenerator -par -Chem_GD <1 or 0>
 bool BOUNDARY_PULL = true; //./batchGenerator -par -BP <1 or 0>
-int BOUNDARY_PULL_TYPE = 1; // ./batchGenerator -par -BPT 
+int BOUNDARY_PULL_TYPE = 2; // ./batchGenerator -par -BPT 
 double BOUNDARY_FORCE_MAGNITUDE = 600; // ./batchGenerator -par -BFM : Roughly 1/node as default.
+bool L1_L2_FORCED_ANTICLINAL_DIV = true;
 int Weird_WUS = 0;
 //Must be declared in externs.h
 //For clarity, listed as comments in phys.h
@@ -91,6 +92,8 @@ int main(int argc, char* argv[]) {
 			OOP_PROBABILITY = stod(argv[i+1]);
 		} else if (!strcmp(argv[i], "-Chem_GD")) { 
 			CHEMICAL_GD = stoi(argv[i+1]) ? true : false;
+		} else if (!strcmp(argv[i], "-L1_Anti")) { 
+			L1_L2_FORCED_ANTICLINAL_DIV = stoi(argv[i+1]) ? true : false;
 		} else if (!strcmp(argv[i], "-PRINT")) { 
 			PRINT_VTKS = stoi(argv[i+1]) ? true : false;
 		} else if(!strcmp(argv[i], "-WUS_loc")) {
@@ -108,7 +111,7 @@ int main(int argc, char* argv[]) {
 	if (DIV_MECHANISM == 0) { 
 		//cout << "DIV_MECHANISM not set.  Exiting..." << endl;
 		exit(1);
-	} else if (DIV_MECHANISM > 4 || DIV_MECHANISM < 1) { 
+	} else if (DIV_MECHANISM > 5 || DIV_MECHANISM < 1) { 
 		//cout << "DIV_MECHANISM Input failed. Exiting..." << endl;
 		exit(1);
 	}

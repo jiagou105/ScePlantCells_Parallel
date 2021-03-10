@@ -849,12 +849,13 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 	
 	vector<int> start_points;
 	vector<int> end_points;
-	int count = 0;
+	//int count = 0;
 	/*for (unsigned int i = 0; i < cells.size(); i++) { 
 		cout << "Sound off cell: " << i << endl;
 		cout << " \" I have " << cells.at(i)->get_Wall_count() << " Walls and " << endl;
 		cout << " I have " << cells.at(i)->get_cyt_count() << " Cyts\" " << endl;
 	}*/
+	/* Old code block to print out node indices
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		start_points.push_back(count);
 		cells.at(i)->print_VTK_Points(ofs,count,cytoplasm);
@@ -865,6 +866,7 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 		}
 		cout << endl;
 	}
+	*/
 
 	ofs << endl;
 	

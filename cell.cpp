@@ -719,7 +719,13 @@ double Cell::compute_k_lin(shared_ptr<Wall_Node> current) {
 	  theta = acos( min( max(costheta,-1.0), 1.0) );
 	  k_lin = K_LINEAR_LOOSE + K_LINEAR_STIFF*(1-pow(costheta,2));*/
 
-	double k_lin = K_LINEAR_LOOSE;
+	double k_lin;
+	
+	if (this->boundary == 0) {
+		k_lin = K_LINEAR_LOOSE;
+	} else { 
+		k_lin = K_LINEAR_STIFF;
+	}
 
 	return k_lin;
 }

@@ -17,6 +17,7 @@ extern bool CHEMICAL_GD;
 extern bool BOUNDARY_PULL;
 extern int BOUNDARY_PULL_TYPE;
 extern double BOUNDARY_FORCE_MAGNITUDE;
+extern bool L1_L2_FORCED_ANTICLINAL_DIV;
 //Periclinal exempt as an idea
 extern int TENSILE_CALC;
 extern int NUM_STEPS_PER_FRAME;
