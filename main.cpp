@@ -442,7 +442,7 @@ int main(int argc, char* argv[]) {
 
 	int stop = clock();
 
-	//cout << "Time: " << (stop - start) / double(CLOCKS_PER_SEC) * 1000 << endl;
+	cout << "Time: " << (stop - start) / double(CLOCKS_PER_SEC) * 1000 << endl;
 
 	return 0;
 
