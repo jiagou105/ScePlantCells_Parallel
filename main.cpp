@@ -208,6 +208,7 @@ int main(int argc, char* argv[]) {
 	//For hard-set time limit
 	bool is_terminal = true;
 	int terminal_timeout = 362500; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
+	//cout << "Setup complete" << endl;
 
 	//Delta t is approximately 0.4s
 	//int terminal_timeout = 182000; //Plant stops at 20.2 hours after all cells divide
@@ -330,6 +331,7 @@ int main(int argc, char* argv[]) {
 
 				Filename = anim_folder + initial + Number + format;
 
+				//cout << "Opening file for cyt" << endl;
 				ofs_anim.open(Filename.c_str());
 				//true is in reference to printing cytoplasm
 				//THIS MUST BE RUN FIRST: Tensile stress is calculated
@@ -338,6 +340,7 @@ int main(int argc, char* argv[]) {
 				growing_Tissue.one_To_One_Check();
 				growing_Tissue.print_VTK_File(ofs_anim,true);
 				ofs_anim.close();	
+				//cout << "Opening file for no cyt" << endl;
 
 				noCyt_Filename = no_cyt_folder + no_cyt_initial + Number + format;
 
@@ -349,6 +352,7 @@ int main(int argc, char* argv[]) {
 				out++;
 			}
 		}
+		//cout << "VTK printed" << endl;
 		//growing_Tissue.BAD_CATCH(11,Ti);
 		/*if(Ti%1000==0) {
 			digits2 = ceil(log10(out2 + 1));
@@ -399,6 +403,7 @@ int main(int argc, char* argv[]) {
 		if(Ti % (NUM_STEPS_PER_FRAME * VTK_PER_DATA_POINT) == 0) {
 			Locations_no_cyt = locations_no_cyt_folder + locations_initial + to_string(out2) + ".txt";
 			ofs_loc_no_cyt.open(Locations_no_cyt.c_str());
+			//cout << "Opened locations file..." << endl;
 			growing_Tissue.locations_output(ofs_loc_no_cyt,false,Ti);
 			ofs_loc_no_cyt.close();
 			out2 += VTK_PER_DATA_POINT;
@@ -414,12 +419,14 @@ int main(int argc, char* argv[]) {
 			//Cell Depth, (maybe more in future)
 			tissue_data = tissue_data_folder + tissue_data_initial + to_string(out5) + ".txt";
 			tissue_data_file.open(tissue_data.c_str());
+			//cout << "Tissue output file opened..." << endl;
 			growing_Tissue.tissue_Data_Output(tissue_data_file,Ti);
 			tissue_data_file.close();
 			out5 += VTK_PER_DATA_POINT;
 
 			cell_data = cell_data_folder + cell_data_initial + to_string(out4) + ".txt";
 			cell_data_file.open(cell_data.c_str());
+			//cout << "Cell data output opened..." << endl;
 			growing_Tissue.cell_Data_Output(cell_data_file,Ti);
 			cell_data_file.close();
 			out4 += VTK_PER_DATA_POINT;
@@ -435,7 +442,7 @@ int main(int argc, char* argv[]) {
 
 	int stop = clock();
 
-	cout << "Time: " << (stop - start) / double(CLOCKS_PER_SEC) * 1000 << endl;
+	//cout << "Time: " << (stop - start) / double(CLOCKS_PER_SEC) * 1000 << endl;
 
 	return 0;
 
