@@ -412,7 +412,7 @@ void Wall_Node::one_to_one_check() {
 		for (unsigned int j = 0; j <= walls_of_neighbor_cell.size(); j++) { 
 			if (j == walls_of_neighbor_cell.size()) { 
 				//this connection wasn't anywhere in the list of nodes. It's bad.
-				cout << "ERR11: Fake node found in adhesion partners." << endl;
+				//cout << "ERR11: Fake node found in adhesion partners." << endl;
 				i_was_fake = true;
 				this_ptr->erase_Adhesion_Element(i);
 				this_adh_vec = this_ptr->adhesion_vector;
@@ -521,14 +521,16 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 	//cout << "DC Success" << calc_Morse_DC(Ti) << endl;
 	
 	bool boundary_check = this->is_Boundary() && BOUNDARY_PULL;
+	bool boundary_freeze = false;
 	
 	if (boundary_check) { 
-		int layer = get_My_Cell()->get_Layer();
-		switch(BOUNDARY_PULL_TYPE) {
+		/*switch(BOUNDARY_PULL_TYPE) {
 			case 1:
 				//Layer 1 pulled
 				boundary_check &= (layer == 1);
 				break;
+			case 4:
+				boundary_freeze = true;
 			case 2:
 				//Layers 1 and 2 pulled
 				boundary_check &= (layer == 1) || (layer == 2);
@@ -542,18 +544,43 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 				cout << "ERR: Invalid BOUNDARY_PULL_TYPE!" << endl;
 				exit(1);
 				break;
+		}*/
+		int layer = get_My_Cell()->get_Layer();
+		switch(BOUNDARY_PULL_TYPE) {
+			case 0:
+				//No pull
+				boundary_check = false;
+				break;
+			case 1:
+				//Layers 1 and 2 pulled and freeze when Tissue->theta_flag is true
+				boundary_freeze = true;
+			case 2:
+				//Layers 1 and 2 pulled continuously
+				boundary_check &= (layer == 1) || (layer == 2);
+					break;
+			default:
+				//Exit program, invalid parameter entered!
+				cout << "ERR: Invalid BOUNDARY_PULL_TYPE!" << endl;
+				exit(1);
+				break;
 		}
 
 
 		if (boundary_check) { 
-			sum += calc_Boundary_Force(num_boundary_nodes,Ti);
+			if (boundary_freeze && get_My_Cell()->get_Tissue()->get_Theta_Flag()) {
+				sum = sum * 0;
+			} else { 
+				sum += calc_Boundary_Force(num_boundary_nodes,Ti);
+			}
 		}
+
 
 	}
 
 	new_force = sum;
 	return;
 }
+
 //morse potential between wall node i and every cyt node in cell
 Coord Wall_Node::calc_Morse_SC(int Ti) {
 	vector<shared_ptr<Cyt_Node>> cyt_nodes;
@@ -904,6 +931,12 @@ void Wall_Node::calc_Tensile_Stress() {
 	//Displacements of left and right node form this node)
 	Coord Delta_R = RNeighbor->get_Location() - me->get_Location();
 	Coord Delta_L = LNeighbor->get_Location() - me->get_Location();
+	if (Delta_L.length() == 0) { 
+		cout << "TS - Delta_L is zero!" << endl;
+	}
+	if (Delta_R.length() == 0) { 
+		cout << "TS - Delta_R is zero!" << endl;
+	}
 	TS_left = 0;
 	TS_right = 0;
 	if (TENSILE_CALC == 1 || TENSILE_CALC == 2) {
@@ -933,6 +966,41 @@ void Wall_Node::calc_Tensile_Stress() {
 	//calc_Morse_DC(int Ti) doesn't actually make use of Ti, just filling parameter.
 
 	Coord adh_force = calc_Morse_DC(1);
+	if (isnan(TS_left)) { 
+		cout << "TS_left is NaN! " << TS_left << endl;
+		cout << "Delta_L: " << Delta_L.get_X() << "," << Delta_L.get_Y() << endl
+			<< "get_k_lin(): " << me->get_k_lin() << endl
+			<< "Delta_L length: " << Delta_L.length() << endl
+			<< "Tangent: " << tangent.get_X() << "," << tangent.get_Y() << endl;
+		tensile_stress = 0;
+		return;
+	} else if (isinf(TS_left)) { 
+		cout << "TS_left is inf! " << TS_left << endl;
+		tensile_stress = 0;
+		return;
+	} else if (abs(TS_left > 1000))  {
+		cout << "TS_left is huge: " << TS_left << endl;
+		tensile_stress = 0;
+		return;
+	}
+	if (isnan(TS_right)) { 
+		cout << "TS_right is NaN! " << TS_right << endl;
+		cout << "Delta_R: " << Delta_R.get_X() << "," << Delta_R.get_Y() << endl
+			<< "get_k_lin(): " << me->get_k_lin() << endl
+			<< "Delta_R length: " << Delta_R.length() << endl
+			<< "Tangent: " << tangent.get_X() << "," << tangent.get_Y() << endl;
+		tensile_stress = 0;
+		return;
+	} else if (isinf(TS_right)) { 
+		cout << "TS_right is Inf! " << TS_right << endl;
+		tensile_stress = 0;
+		return;
+	} else if (abs(TS_right) > 1000) { 
+		cout << "TS_right is huge: " << TS_right << endl;	
+		tensile_stress = 0;
+		return;
+	}
+
 	if (TENSILE_CALC == 1 || TENSILE_CALC == 3) 
 		TS += abs(adh_force.dot(tangent));
 	tensile_stress = TS;

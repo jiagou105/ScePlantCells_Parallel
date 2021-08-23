@@ -32,7 +32,7 @@ using namespace std;
 bool OUT_OF_PLANE_GROWTH = true; //./batchGenerator -par -OOP_flag <1 or 0>
 bool WUS_LEVEL = false;
 //EXPERIMENTAL PARAMTERS
-bool UNIFORM_OOP_DIST = false; // Flag -Unif <1 or 1>
+bool UNIFORM_OOP_DIST = false; // Flag -Unif <1 or 0>
 double OOP_PROBABILITY = 0.3; // UNIFORM ONLY - Defaults to 0.3
 double MECH_DIV_PROB = 0.5;
 int DIV_MECHANISM = 1; //./batchGenerator -par -div <int>
@@ -44,10 +44,14 @@ int TENSILE_CALC = 4; //./batchGenerator -par TC <int>
 int NUM_STEPS_PER_FRAME = 2500;
 int VTK_PER_DATA_POINT = 5;
 int RECENT_DIV_NUM_FRAMES = 10;
+double THETA_ABC = 0.78539816339; // Default to pi / 4
 bool CHEMICAL_GD = true; //./batchGenerator -par -Chem_GD <1 or 0>
 bool BOUNDARY_PULL = true; //./batchGenerator -par -BP <1 or 0>
-int BOUNDARY_PULL_TYPE = 2; // ./batchGenerator -par -BPT 
-double BOUNDARY_FORCE_MAGNITUDE = 600; // ./batchGenerator -par -BFM : Roughly 1/node as default.
+int BOUNDARY_PULL_TYPE = 2; // ./batchGenerator -par -BPT
+//0 is off;
+//1 is boundary pulled until theta formed is >= THETA_ABC (Anchored Boundary Condition / ABC)
+//2 is continuous pulling by magnitude BOUNDARY_FORCE_MAGNITUDE along curve (Forced Boundary Condition / FBC)
+double BOUNDARY_FORCE_MAGNITUDE = 212.5; // ./batchGenerator -par -BFM : Experimental lower bound is 131, lower bound is 294, default is mean.
 bool L1_L2_FORCED_ANTICLINAL_DIV = true;
 int Weird_WUS = 0;
 //Must be declared in externs.h
@@ -93,6 +97,7 @@ int main(int argc, char* argv[]) {
 		} else if (!strcmp(argv[i], "-Chem_GD")) { 
 			CHEMICAL_GD = stoi(argv[i+1]) ? true : false;
 		} else if (!strcmp(argv[i], "-L1_Anti")) { 
+			//If this is 1 or true, then L1 mechanism is geometric
 			L1_L2_FORCED_ANTICLINAL_DIV = stoi(argv[i+1]) ? true : false;
 		} else if (!strcmp(argv[i], "-PRINT")) { 
 			PRINT_VTKS = stoi(argv[i+1]) ? true : false;
@@ -106,6 +111,8 @@ int main(int argc, char* argv[]) {
 			BOUNDARY_PULL_TYPE = stoi(argv[i+1]);
 		} else if (!strcmp(argv[i], "-BFM")) { 
 			BOUNDARY_FORCE_MAGNITUDE = stod(argv[i+1]);
+		} else if (!strcmp(argv[i], "-theta")) { 
+			THETA_ABC = stod(argv[i+1]);
 		}
 	}
 	if (DIV_MECHANISM == 0) { 
@@ -204,9 +211,20 @@ int main(int argc, char* argv[]) {
 
 	int Ti = 0;
 	int terminal_timer = 0;
-	//bool is_terminal = false;
+	bool is_terminal;
+	//is_terminal = false;
 	//For hard-set time limit
-	bool is_terminal = true;
+
+	if (BOUNDARY_PULL_TYPE == 1) { 
+		is_terminal = false;
+		growing_Tissue.update_Boundary_Directions();
+		growing_Tissue.set_Theta_Flag(false);
+	} else { 
+		is_terminal = true;
+		growing_Tissue.set_Theta_Flag(false);
+	}
+	cout << "Initialiized with Theta_Flag: " << growing_Tissue.get_Theta_Flag() << endl; 
+
 	int terminal_timeout = 362500; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
 	//cout << "Setup complete" << endl;
 
@@ -217,9 +235,12 @@ int main(int argc, char* argv[]) {
 		//keep track of simulation runs
 		if (!is_terminal) {
 			if (Ti%1000 == 0) {
-				is_terminal = growing_Tissue.terminal_Tissue();
+				//is_terminal = growing_Tissue.terminal_Tissue();
+				growing_Tissue.update_Theta_Flag();
+				is_terminal = growing_Tissue.get_Theta_Flag();
+				cout << "Timestep: " << Ti << "\n TF: " << is_terminal << endl;
 				if (is_terminal) { 
-					terminal_timeout = 2*Ti;
+					growing_Tissue.set_Time_Frozen(Ti);
 				}
 			}
 		} else { 
@@ -312,6 +333,9 @@ int main(int argc, char* argv[]) {
 
 		// print to dataOutput and vtk files
 
+		if (Ti % NUM_STEPS_PER_FRAME == 0) { 
+			growing_Tissue.refresh_Wall_Nodes();
+		}
 		if (PRINT_VTKS) { 
 
 			if(Ti % NUM_STEPS_PER_FRAME == 0) {

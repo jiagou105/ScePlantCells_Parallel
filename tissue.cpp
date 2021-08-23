@@ -26,6 +26,11 @@ Tissue::Tissue(string filename, mt19937 gen) {
 	num_deleted = 0;
 	num_divs = 0;
 	num_IP_divs = 0;
+	if (BOUNDARY_PULL_TYPE == 1) { 
+		time_frozen = -1;
+	} else { 
+		time_frozen = 0;
+	}
 	divplanes.clear();
 	divplanes_layers.clear();
 	this->gen = gen;
@@ -293,6 +298,32 @@ Coord Tissue::Compute_L1_AVG() {
 
 	return top_cell_center;
 }
+
+void Tissue::set_Theta_Flag(bool tf) { 
+	theta_flag = tf;
+	return;
+}
+
+void Tissue::set_Time_Frozen(int Ti) { 
+	time_frozen = Ti;
+	return;
+}
+
+void Tissue::update_Theta_Flag() { 
+	if (theta_flag) return;
+
+	else { 
+		double theta_left = acos( left_boundary_dir.dot(Coord(-1,0)) / left_boundary_dir.length()); 
+		double theta_right = acos( right_boundary_dir.dot(Coord(1,0)) / right_boundary_dir.length()); 
+		double theta = theta_left+theta_right / 2.0;
+		cout << "Theta calculated as: " << theta << endl;
+		if (theta >= THETA_ABC) { 
+			theta_flag = true;
+			return;
+		}
+	}
+}
+
 /* OLD L1 AVG CODE - Caused WUS to late-stage sink into tissue.
 Coord Tissue::Compute_L1_AVG(){
 	Coord avg;
@@ -335,6 +366,15 @@ void Tissue::set_up_counts(){
 	for(unsigned int i = 0; i < 4; i++){
 		counts.push_back(0);
 	}
+}
+void Tissue::refresh_Wall_Nodes() { 
+	for (unsigned int i = 0; i < cells.size(); i++) { 
+		cells.at(i)->refresh_Walls();
+	}
+	for (unsigned int i = 0; i < cells.size(); i++) { 
+		cells.at(i)->one_To_One_Check();
+	}
+	return;
 }
 void Tissue::identify_Boundaries() { 
 	for (unsigned int i = 0; i < cells.size(); i++) { 
@@ -465,7 +505,8 @@ void Tissue::tissue_Data_Output(ofstream& ofs, int Ti){
 		ofs << width_by_layer.at(i-1) << " ";
 	}
 	ofs << calc_Height() << " ";
-	ofs << Ti << endl;
+	ofs << Ti << " ";
+	ofs << get_Time_Frozen() << endl;
 	return;
 }
 
@@ -556,14 +597,21 @@ void Tissue::update_Adhesion() {
 //Updates the direction that boundaries are stretched
 void Tissue::update_Boundary_Directions() {
 	Coord left_top = cells.at(9)->get_Cell_Center();
-	Coord left_bot = cells.at(44)->get_Cell_Center();
+//	Coord left_bot = cells.at(44)->get_Cell_Center();
 	Coord right_top = cells.at(8)->get_Cell_Center();
-	Coord right_bot = cells.at(43)->get_Cell_Center();
-	Coord proto_left = (left_top - left_bot).perpVector();
-	Coord proto_right = (right_top - right_bot).perpVector();
+//	Coord right_bot = cells.at(43)->get_Cell_Center();
+	//cout << "Updating boundary directions; top_cell_center: (" << top_cell_center.get_X() << "," << top_cell_center.get_Y() << ").\n";
+	Coord curv_cent = top_cell_center - Coord(0,EXP_RADIUS_OF_CURV);
+	Coord proto_left = (left_top - curv_cent).perpVector();
+	Coord proto_right = (right_top - curv_cent).perpVector();
+	//cout << "proto_left: (" << proto_left.get_X() << "," << proto_left.get_Y() << ").\n";
+	//cout << "proto_right: (" << proto_right.get_X() << "," << proto_right.get_Y() << ").\n";
+	//cout << "curv_cent: (" << curv_cent.get_X() << "," << curv_cent.get_Y() << ").\n";
 	
-	left_boundary_dir = (proto_left.get_Y() > 0) ? proto_left : Coord(0,0) - proto_left;
-	right_boundary_dir = (proto_right.get_Y() > 0) ? proto_right : Coord(0,0) - proto_right;
+	left_boundary_dir = (proto_left.get_Y() < 0) ? proto_left : Coord(0,0) - proto_left;
+	right_boundary_dir = (proto_right.get_Y() < 0) ? proto_right : Coord(0,0) - proto_right;
+	//cout << "left_boundary_dir: (" << left_boundary_dir.get_X() << "," << left_boundary_dir.get_Y() << ").\n";
+	//cout << "right_boundary_dir: (" << right_boundary_dir.get_X() << "," << right_boundary_dir.get_Y() << ").\n";
 	return;
 }
 
@@ -574,7 +622,9 @@ void Tissue::update_Num_Boundary_Nodes() {
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		curr = cells.at(i);
 		layer_check = (curr->get_Boundary()==1);
-		switch(BOUNDARY_PULL_TYPE) { 
+		//If any boundary forces at all are applied, they are applied to layers 1 and 2.
+		layer_check &= (curr->get_Layer() == 1) || (curr->get_Layer() == 2);
+		/*switch(BOUNDARY_PULL_TYPE) { 
 			case 1:
 				layer_check &= (curr->get_Layer() == 1);
 				break;
@@ -587,7 +637,7 @@ void Tissue::update_Num_Boundary_Nodes() {
 			default:
 				cout << "Invalid BPT!" << endl;
 				exit(1);
-		}
+		}*/
 		if (layer_check) {
 			num_boundary_nodes += curr->get_Num_Boundary_Nodes();
 		}

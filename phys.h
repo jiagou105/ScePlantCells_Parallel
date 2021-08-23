@@ -11,6 +11,12 @@
 #include "coord.h"
 ////=====================
 //// Simulation Constants
+
+//Base distances are in microns
+//Base spring constants are in micro-newtons per micron
+//Forces are in micro-newtons
+//
+
 const double dt = .0003;
 const int INIT_NUM_CYT_NODES = 15;
 const int INIT_WALL_NODES = 100;
@@ -19,6 +25,7 @@ const double HILL_K = 1.29672531651;
 const int HILL_N = 10;
 const bool HILL_PROB = true;  //Needs to be set to true for hill to apply.
 const int TISSUE_BASE = 45;
+const double EXP_RADIUS_OF_CURV = 51.37807;  //PLACEHOLDER
 //these are used to control equi angles
 //and bending spring constants
 const double ANGLE_FIRST_QUAD = 0.785398;
@@ -33,7 +40,7 @@ const double HIGH_ANGLE_DISCOUNT = 0.95;
 const int CORNER_RADIUS= 4;
 const double ADD_WALL_NODE_ANGLE_FIRST_QUAD =.436;
 const double ADD_WALL_NODE_ANGLE_SECOND_QUAD = 2.0;
-const double BOUNDARY_DAMP = 1; //was used before for boundary
+const double BOUNDARY_DAMP = 1; //was used before for boundary  (Units kg / s)
 const double STEM_DAMP = .1;
 const double REG_DAMP = 1;
 ////// Cell wall mechanical parameters
@@ -43,13 +50,13 @@ const double K_BEND_LOOSE =4.5433;//12.8128;
 //9.9898;//2.5416;//10.9974;//11.1948;//5.2617;//6.1530;//3.8290;//1.4132;//7.5802;//6.9589;//0.8149;//4.5433;//0.6185;//9.3159;//4.8077;//2.9080;//11.8757;//8.6403;//7.9421;//
 //K_LINEAR_STIFF not used
 const double K_BEND_UNIFORM = 12;
-const double K_LINEAR_STIFF = 560.3272;
+const double K_LINEAR_STIFF = 560.3272; 
 const double K_LINEAR_LOOSE =280.1636;//54.2730;
 //157.7281;//674.3111;//511.3433;//746.0824;//461.8290;//230.2545;//134.8271;//336.2897;//581.4058;//551.7969;//84.7288;//280.1636;//688.4090;//396.0437;//612.7239;//320.9386;//381.9915;//204.3934;//477.1815;//
 ////Adhesion spring mechanical params
 const double K_ADH = 12;
-const double K_ADH_L1 = 18;//12;
-const double K_ADH_L2 = 18;//12;
+const double K_ADH_L1 = 12;//12; //Units - micronewton / micron
+const double K_ADH_L2 = 12;//12;
 const double K_ADH_DIV = 12;
 const double MembrEquLen_ADH = .9;
 const double ADHThresh = 2;
@@ -68,7 +75,7 @@ const double xsi_MM = 0.103;
 const double gamma_MM = 1.1;	
 //
 /////// Subcellular element parameters for membrane  - internal interactions
-const double U_MI = 45;
+const double U_MI = 45; //Units - 
 const double W_MI = 0;
 const double xsi_MI = .3;
 const double gamma_MI = 1.34;
@@ -138,13 +145,17 @@ const int STEM_LAYER = 7;
 //Probability that something will grow out of plane, recalculated
 //every division cycle.
 //double OOP_PROBABILITY = 0.5 (Default)
-const double INNER_OOP_RADIUS = 29.29/2; //Alex's data gave 29.29 microns
-const double INNER_OOP_PROB = 0.17;
-const double OUTER_OOP_PROB = 0.13;
-const double INNER_OOP_PROB_L1 = 0.11;
-const double OUTER_OOP_PROB_L1 = 0.455;
-const double INNER_OOP_PROB_L2 = 0.2;
-const double OUTER_OOP_PROB_L2 = 0.2;
+const double CZ_RADIUS = 29.29/2; //Alex's data gave 29.29 microns
+
+const double CZ_APICAL_CORPUS_OOP_PROB = 0.18;
+const double PZ_APICAL_CORPUS_OOP_PROB = 0.29;
+const double CZ_BASAL_CORPUS_OOP_PROB = 0.11;
+const double PZ_BASAL_CORPUS_OOP_PROB = 0.18;
+
+const double CZ_OOP_PROB_L1 = 0.73;
+const double PZ_OOP_PROB_L1 = 0.40;
+const double CZ_OOP_PROB_L2 = 0.12;
+const double PZ_OOP_PROB_L2 = 0.50;
 
 
 /////// VTK parameters

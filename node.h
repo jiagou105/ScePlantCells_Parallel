@@ -18,7 +18,7 @@ class Cyt_Node;
 #include "externs.h"
 //=====================
 
-class Node{
+class Node {
     protected:
     //variables that will be shared by all nodes
 		Coord my_loc;

@@ -33,7 +33,10 @@ class Tissue {
 		int num_IP_divs;
 		int num_divs;
 		int num_boundary_nodes;
+		int time_frozen;
 		double avg_cell_diam;
+		bool theta_flag; //For Anchored boundary, identifies whether 
+		// the simulation has reached its anchoring theta.
 		Coord top_cell_center;
 		Coord left_boundary_dir;
 		Coord right_boundary_dir;
@@ -54,10 +57,16 @@ class Tissue {
 		void update_Num_Cells(shared_ptr<Cell>& new_Cell);
 		int  get_num_cells() {return num_cells;}
 		Coord Compute_L1_AVG();
+		void set_Theta_Flag(bool tf);
+		void update_Theta_Flag();
+		bool get_Theta_Flag() {return theta_flag;}
 		void update_Avg_Cell_Diameter();
+		void set_Time_Frozen(int Ti);
+		int get_Time_Frozen() {return time_frozen;}		
 		double get_Avg_Cell_Diameter() {return avg_cell_diam;}
 		int return_counts(int index);
 		void set_up_counts();
+		void refresh_Wall_Nodes();
 		void identify_Boundaries();
 		void set_counts(int index);
 		void assign_dist_vecs(vector<int> dist1, vector<int>dist2, vector<int> dist3, vector<int> dist4);

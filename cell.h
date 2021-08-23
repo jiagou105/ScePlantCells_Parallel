@@ -96,6 +96,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void get_Wall_Nodes_Vec(vector<shared_ptr<Wall_Node>>& walls);
 		//add new wall node
 		void add_Wall_Node_Vec(shared_ptr<Wall_Node> curr);
+		//refresh list of wall nodes - ensures no fake nodes
+		void refresh_Wall_Nodes_Vec();
 		//get cyt nodes
 		void get_Cyt_Nodes_Vec(vector<shared_ptr<Cyt_Node>>& cyts);
 		//add new cyt node

@@ -28,10 +28,12 @@ int main(int argc, char* argv[]) {
 	char CK_CF[100] = "";
 	char WUS_LEVEL[100] = "";
 	//Include trailing / in string
-	string bigdata_path = "/bigdata/alberlab/shared/Tension_Tests/TT2/";
+	string bigdata_path = "/bigdata/alberlab/shared/";
+	string subfolder;
 	string final_path;
 	int divDataCutoff;
 	bool bigdata = false;
+	bool has_subfolder = false;
 	bool printing_vtks = true;
 	bool printing_nematic = false;
 
@@ -63,6 +65,9 @@ int main(int argc, char* argv[]) {
 			flag_names.push_back(argv[i+1]);
 		} else if (!strcmp(argv[i], "-bigdata")) { 
 			bigdata = true;
+		} else if (!strcmp(argv[i], "-subfolder")) { 
+			has_subfolder = true;
+			subfolder = argv[i+1];
 		}
 	}
 
@@ -117,6 +122,10 @@ int main(int argc, char* argv[]) {
 
 
 	final_path = (bigdata) ? bigdata_path : "";
+
+	if (has_subfolder) { 
+		final_path = final_path + subfolder;
+	}
 
 
 	ofs << "#!/bin/bash -l\n";

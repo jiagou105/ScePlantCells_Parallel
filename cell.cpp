@@ -1371,16 +1371,18 @@ double Cell::calc_My_Oop_Prob() {
 		//If we're using uniform OoP
 		return OOP_PROBABILITY;
 	}
-	if (abs(get_Cell_Center().get_X()) < INNER_OOP_RADIUS) {
+	if (abs(get_Cell_Center().get_X()) < CZ_RADIUS) {
 		//If we're in the center of the SAM
-		if (layer == 1) return INNER_OOP_PROB_L1;
-		else if (layer == 2) return INNER_OOP_PROB_L2;
-		return INNER_OOP_PROB;
+		if (layer == 1) return CZ_OOP_PROB_L1;
+		else if (layer == 2) return CZ_OOP_PROB_L2;
+		else if (layer == 3 || layer == 4) return CZ_APICAL_CORPUS_OOP_PROB;
+		else return CZ_BASAL_CORPUS_OOP_PROB;
 	}  
 	//If we're in the periphery
-	if (layer == 1) return OUTER_OOP_PROB_L1;
-	else if (layer == 2) return OUTER_OOP_PROB_L2;
-	return OUTER_OOP_PROB;
+	if (layer == 1) return PZ_OOP_PROB_L1;
+	else if (layer == 2) return PZ_OOP_PROB_L2;
+	else if (layer == 3 || layer == 4) return PZ_APICAL_CORPUS_OOP_PROB;
+	else return PZ_BASAL_CORPUS_OOP_PROB;
 
 }
 void Cell::set_Init_Num_Nodes(double inn) { 
@@ -1501,8 +1503,8 @@ void Cell::refresh_Walls() {
 void Cell::add_Wall_Node(int Ti) {
 
 	//find node to the right of largest spring
-	shared_ptr<Cell> this_cell= shared_from_this();
-	shared_ptr<Wall_Node>right = NULL;
+	shared_ptr<Cell> this_cell = shared_from_this();
+	shared_ptr<Wall_Node> right = NULL;
 	//vector<pair<shared_ptr<Wall_Node>,double>> nodes;
 	//cout  << "Find largest length" << endl;
 	find_Largest_Length(right);
@@ -1564,6 +1566,24 @@ void Cell::add_Wall_Node(int Ti) {
 	}
 	return;
 }
+
+void Cell::refresh_Wall_Nodes_Vec() { 
+	vector<shared_ptr<Wall_Node>> new_wall_nodes;
+	shared_ptr<Wall_Node> curr = left_Corner;
+	int new_num_wall_nodes = 0;
+
+	do { 
+		new_wall_nodes.push_back(curr);
+		new_num_wall_nodes++;
+		curr = curr->get_Left_Neighbor();
+	} while (curr !=left_Corner);
+
+	wall_nodes = new_wall_nodes;
+	num_wall_nodes = new_num_wall_nodes;
+
+	return;
+}
+
 void Cell::delete_Wall_Node(int Ti) {
 	//shared_ptr<Wall_Node> left = NULL;
 	//shared_ptr<Wall_Node> right = NULL;
@@ -2231,7 +2251,7 @@ void Cell::print_VTK_Tensile_Stress(ofstream& ofs, bool cytoplasm) {
 	do {
 		if(cytoplasm) currW->calc_Tensile_Stress();
 		color = currW->get_Tensile_Stress();
-		ofs << color << endl;
+		ofs << (isnan(color)?0:color) << endl;
 		//cout << "Tensile" << color << endl;
 		//cout << "Angle" << currW->get_Angle() << endl;s
 		currW = currW->get_Left_Neighbor();
