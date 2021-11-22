@@ -597,21 +597,23 @@ void Tissue::update_Adhesion() {
 //Updates the direction that boundaries are stretched
 void Tissue::update_Boundary_Directions() {
 	Coord left_top = cells.at(9)->get_Cell_Center();
-//	Coord left_bot = cells.at(44)->get_Cell_Center();
 	Coord right_top = cells.at(8)->get_Cell_Center();
-//	Coord right_bot = cells.at(43)->get_Cell_Center();
-	//cout << "Updating boundary directions; top_cell_center: (" << top_cell_center.get_X() << "," << top_cell_center.get_Y() << ").\n";
 	Coord curv_cent = top_cell_center - Coord(0,EXP_RADIUS_OF_CURV);
 	Coord proto_left = (left_top - curv_cent).perpVector();
 	Coord proto_right = (right_top - curv_cent).perpVector();
-	//cout << "proto_left: (" << proto_left.get_X() << "," << proto_left.get_Y() << ").\n";
-	//cout << "proto_right: (" << proto_right.get_X() << "," << proto_right.get_Y() << ").\n";
-	//cout << "curv_cent: (" << curv_cent.get_X() << "," << curv_cent.get_Y() << ").\n";
 	
 	left_boundary_dir = (proto_left.get_Y() < 0) ? proto_left : Coord(0,0) - proto_left;
 	right_boundary_dir = (proto_right.get_Y() < 0) ? proto_right : Coord(0,0) - proto_right;
-	//cout << "left_boundary_dir: (" << left_boundary_dir.get_X() << "," << left_boundary_dir.get_Y() << ").\n";
-	//cout << "right_boundary_dir: (" << right_boundary_dir.get_X() << "," << right_boundary_dir.get_Y() << ").\n";
+
+	//If the boundary direction would cause a circle, instead pull straight down.
+	
+	if (left_boundary_dir.get_X() > 0) { 
+		left_boundary_dir = Coord(0,-1);
+	}
+	if (right_boundary_dir.get_X() < 0) { 
+		right_boundary_dir = Coord(0,-1);
+	}
+
 	return;
 }
 
