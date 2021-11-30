@@ -964,6 +964,9 @@ void Cell::update_Neighbor_Cells() {
 	neigh_cells.clear();
 	//grab all cells from tissue
 	//cout << "cleared" << endl;
+	
+	vector<shared_ptr<Cell>> curr_ADH_Neighbors;
+	get_ADH_Neighbors_Vec(curr_ADH_Neighbors);
 	vector<shared_ptr<Cell>> all_Cells;
 	my_tissue->get_Cells(all_Cells);
 
@@ -995,6 +998,17 @@ void Cell::update_Neighbor_Cells() {
 			}
 			//else you're pointing at yourself and shouldnt do anything
 
+		}
+	}
+
+	for (unsigned int i = 0; i < curr_ADH_Neighbors.size(); i++) { 
+		bool already_neigh = false;
+		for (unsigned int j = 0; j < neigh_cells.size(); j++) { 
+			already_neigh |= curr_ADH_Neighbors.at(i) == neigh_cells.at(j);
+			if (already_neigh) break;
+		}
+		if (!already_neigh) { 
+			neigh_cells.push_back(curr_ADH_Neighbors.at(i));
 		}
 	}
 

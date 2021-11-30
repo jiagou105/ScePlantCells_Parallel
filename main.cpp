@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
 		is_terminal = true;
 		growing_Tissue.set_Theta_Flag(false);
 	}
-	cout << "Initialiized with Theta_Flag: " << growing_Tissue.get_Theta_Flag() << endl; 
+	cout << "Initialized with Theta_Flag: " << growing_Tissue.get_Theta_Flag() << endl; 
 
 	int terminal_timeout = 362500; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
 	//cout << "Setup complete" << endl;
