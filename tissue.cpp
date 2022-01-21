@@ -534,12 +534,15 @@ vector<double> Tissue::calc_Width() {
 double Tissue::calc_Height() {  
 	double height = 0;
 	double sum = 0;
+	int n_L1_cells = 0;
+	int n_SL_cells = 0;
 	for (unsigned int i = 0; i < cells.size(); i++) { 
 		if(cells.at(i)->get_Layer() == 1) { 
 			sum += cells.at(i)->get_Cell_Center().get_X();
+			n_L1_cells++;
 		}
 	}
-	double x_avg = sum / static_cast<double>(cells.size());
+	double x_avg = sum / static_cast<double>(n_L1_cells);
 	unsigned int top_cell_index = 5000;
 	double min_dist = 500;
 	double temp;
@@ -552,12 +555,15 @@ double Tissue::calc_Height() {
 			}
 		}
 	}
+
+	sum = 0;
 	for (unsigned int i = 0; i < cells.size(); i++) { 
 		if(cells.at(i)->get_Layer() == STEM_LAYER) { 
 			sum += cells.at(i)->get_Cell_Center().get_X();
+			n_SL_cells++;
 		}
 	}
-	x_avg = sum / static_cast<double>(cells.size());
+	x_avg = sum / static_cast<double>(n_SL_cells);
 	unsigned int bottom_cell_index = 5000;
 	min_dist = 500;
 	for (unsigned int i = 0; i < cells.size(); i++) { 
