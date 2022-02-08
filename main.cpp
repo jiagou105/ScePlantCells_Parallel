@@ -41,7 +41,8 @@ double WUS_RAD_CONTRACTION_FACTOR = 1;//./batchGenerator -par -WR <double>
 double CK_RAD_CONTRACTION_FACTOR = 1; //./batchGenerator -par -CKR <double>
 int PRINT_VTKS = true; // ./batchGenerator -par -PRINT <1 or 0>
 int TENSILE_CALC = 4; //./batchGenerator -par TC <int> 
-int NUM_STEPS_PER_FRAME = 2500;
+//int NUM_STEPS_PER_FRAME = 2500; // EQ005
+int NUM_STEPS_PER_FRAME = 50; // EQ005
 int VTK_PER_DATA_POINT = 5;
 int RECENT_DIV_NUM_FRAMES = 10;
 double THETA_ABC = 0.78539816339; // Default to pi / 4
@@ -53,6 +54,12 @@ int BOUNDARY_PULL_TYPE = 2; // ./batchGenerator -par -BPT
 //2 is continuous pulling by magnitude BOUNDARY_FORCE_MAGNITUDE along curve (Forced Boundary Condition / FBC)
 double BOUNDARY_FORCE_MAGNITUDE = 226.7350; // ./batchGenerator -par -BFM : Experimental lower bound is 139.9599, upper bound is 313.5101, default is mean.
 bool L1_L2_FORCED_ANTICLINAL_DIV = true;
+//EQ007
+double K_LINEAR_STIFF = 560.3272; 
+//EQ008
+double STEM_DAMP = 0.1; 
+//EQ009
+double CENTROID_NOISE = 0;
 int Weird_WUS = 0;
 //Must be declared in externs.h
 //For clarity, listed as comments in phys.h
@@ -111,6 +118,12 @@ int main(int argc, char* argv[]) {
 			BOUNDARY_PULL_TYPE = stoi(argv[i+1]);
 		} else if (!strcmp(argv[i], "-BFM")) { 
 			BOUNDARY_FORCE_MAGNITUDE = stod(argv[i+1]);
+		} else if (!strcmp(argv[i], "-BDRY_KLIN")) { 
+			K_LINEAR_STIFF = stod(argv[i+1]);
+		} else if (!strcmp(argv[i], "-STEM_DAMP")) { 
+			STEM_DAMP = stod(argv[i+1]);
+		} else if (!strcmp(argv[i], "-CENTROID_NOISE")) { 
+			CENTROID_NOISE = stod(argv[i+1]);
 		} else if (!strcmp(argv[i], "-theta")) { 
 			THETA_ABC = stod(argv[i+1]);
 		}
@@ -158,7 +171,10 @@ int main(int argc, char* argv[]) {
 	//growing_Tissue.assign_dist_vecs(dist1, dist2, dist3, dist4);
 	//cout << "Finished creating Cells" << endl;
 	growing_Tissue.update_Signal(true);
-	growing_Tissue.update_growth_direction();
+	
+	//EQ002 - removed dynamic polarization on initiation.
+	//growing_Tissue.update_growth_direction();
+
 	//cout << "Signal" << endl;
 	//growing_Tissue.update_growth_direction();
 	//cout << "growth direction" << endl;
@@ -225,7 +241,9 @@ int main(int argc, char* argv[]) {
 	}
 	cout << "Initialized with Theta_Flag: " << growing_Tissue.get_Theta_Flag() << endl; 
 
-	int terminal_timeout = 362500; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
+	//int terminal_timeout = 362500; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
+	//EQ006
+	int terminal_timeout = 2501;
 	//cout << "Setup complete" << endl;
 
 	//Delta t is approximately 0.4s
@@ -260,7 +278,7 @@ int main(int argc, char* argv[]) {
 
 		//This if statement seems redundant
 		
-		
+		/* EQ002 -  Removed dynamic polarization
 		if(Ti == 10000) {
 			growing_Tissue.update_Signal(false);
 			growing_Tissue.update_growth_direction();
@@ -270,6 +288,7 @@ int main(int argc, char* argv[]) {
 			growing_Tissue.update_Signal(false);
 			growing_Tissue.update_growth_direction();
 		}
+		*/
 		//adds one new cell wall node per cell everytime it is called
 		//dont call it right away to give cell time to find initial configuration
 		if(Ti >= 10000){
@@ -311,15 +330,21 @@ int main(int argc, char* argv[]) {
 
 		//adds internal node according to 
 		//individual cell growth rate
-		if (Ti >= 10000){
+
+
+		//
+		/*if (Ti >= 10000){
 			//cout << "cell cycle" << endl;
 			growing_Tissue.update_Cell_Cycle(Ti);
-		}
+		}*/
 		//will divide cell if time
 		//cout << "divide necessary cells" << endl;
-		if (Ti >= 10000) {
+
+
+		//EQ004
+		/*if (Ti >= 10000) {
 			growing_Tissue.division_check();
-		}
+		}*/
 
 		//Calculate new forces on cells and nodes
 		//cout << "forces" << endl;

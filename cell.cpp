@@ -61,7 +61,7 @@ Cell::Cell(Tissue* tissue) {
 }
 //this constructor is used to initialize first set of cells
 //calls set_growth_rate which detemrines growth rate based on WUS CONC
-Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem)    {
+Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem, int gd, int initial_CP)    {
 	this->my_tissue = tiss;
 	this->rank = rank;
 	this->layer = layer;
@@ -110,11 +110,39 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	
 	//cout << "CELL PROGRESS CONSTRUCTOR: " << Cell_Progress << endl;
 	//Cell_Progress = my_tissue->unifRandInt(0,10);
-	this->cell_center = center;
+	
+	//EQ009
+	double rand_angle = my_tissue->unifRand() * 2 * 3.14159;
+	Coord centroid_offset(cos(rand_angle)*CENTROID_NOISE,
+			sin(rand_angle)*CENTROID_NOISE);
+
+	this->cell_center = center + centroid_offset;
 	//this gets reupdated after singal is assigned
 	//in tissue constructor
-	growth_direction = Coord(0,0);
+	//growth_direction = Coord(0,0);
 	//This is a placeholder.  This is updated in main after signal calculation.
+	
+
+	//Equilibrium S.A. EQ002
+	switch (gd) { 
+		case 0:
+			growth_direction = Coord(0,0);
+			break;
+		case 1:
+			growth_direction = Coord(1,0);
+			break;
+		case 2:
+			growth_direction = Coord(0,1);
+			break;
+		default:
+			cout << "Invalid Growth_Dir value made it to cell constructor" << endl;
+			break;
+	}
+
+	//Equilibrium S.A.. EQ003
+	this->Cell_Progress = static_cast<double>(initial_CP)/100;
+
+
 	recent_div = false;
 	recent_div_MD = 0;
 

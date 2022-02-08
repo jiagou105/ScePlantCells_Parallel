@@ -3,6 +3,8 @@ Center:3.95,0
 Radius:3.75
 Layer:1
 Boundary:0
+Growth_Dir:1
+Cell_Progress:14
 End_Cell
 
 CellRank:1
@@ -10,6 +12,8 @@ Center:-3.95,0
 Radius:3.75
 Layer:1
 Boundary:0
+Growth_Dir:1
+Cell_Progress:85
 End_Cell
 
 CellRank:2
@@ -17,6 +21,8 @@ Center:11.85,0
 Radius:3.75
 Layer:1
 Boundary:0
+Growth_Dir:1
+Cell_Progress:64
 End_Cell
 
 CellRank:3
@@ -24,6 +30,8 @@ Center:-11.85,0
 Radius:3.75
 Layer:1
 Boundary:0
+Growth_Dir:1
+Cell_Progress:71
 End_Cell
 
 CellRank:4
@@ -31,6 +39,8 @@ Center:19.75,0
 Radius:3.75
 Layer:1
 Boundary:0
+Growth_Dir:1
+Cell_Progress:60
 End_Cell
 
 CellRank:5
@@ -38,6 +48,8 @@ Center:-19.75,0
 Radius:3.75
 Layer:1
 Boundary:0
+Growth_Dir:1
+Cell_Progress:44
 End_Cell
 
 CellRank:6
@@ -45,6 +57,8 @@ Center:27.65,0
 Radius:3.75
 Layer:1
 Boundary:0
+Growth_Dir:1
+Cell_Progress:60
 End_Cell
 
 CellRank:7
@@ -52,6 +66,8 @@ Center:-27.65,0
 Radius:3.75
 Layer:1
 Boundary:0
+Growth_Dir:1
+Cell_Progress:2
 End_Cell
 
 CellRank:8
@@ -59,6 +75,8 @@ Center:35.55,0
 Radius:3.75
 Layer:1
 Boundary:1
+Growth_Dir:0
+Cell_Progress:67
 End_Cell
 
 CellRank:9
@@ -66,6 +84,8 @@ Center:-35.55,0
 Radius:3.75
 Layer:1
 Boundary:1
+Growth_Dir:0
+Cell_Progress:76
 End_Cell
 
 CellRank:10
@@ -73,6 +93,8 @@ Center:0,-7.9
 Radius:3.75
 Layer:2
 Boundary:0
+Growth_Dir:1
+Cell_Progress:28
 End_Cell
 
 CellRank:11
@@ -80,6 +102,8 @@ Center:7.9,-7.9
 Radius:3.75
 Layer:2
 Boundary:0
+Growth_Dir:1
+Cell_Progress:71
 End_Cell
 
 CellRank:12
@@ -87,6 +111,8 @@ Center:-7.9,-7.9
 Radius:3.75
 Layer:2
 Boundary:0
+Growth_Dir:1
+Cell_Progress:94
 End_Cell
 
 CellRank:13
@@ -94,6 +120,8 @@ Center:15.8,-7.9
 Radius:3.75
 Layer:2
 Boundary:0
+Growth_Dir:1
+Cell_Progress:52
 End_Cell
 
 CellRank:14
@@ -101,6 +129,8 @@ Center:-15.8,-7.9
 Radius:3.75
 Layer:2
 Boundary:0
+Growth_Dir:1
+Cell_Progress:89
 End_Cell
 
 CellRank:15
@@ -108,6 +138,8 @@ Center:23.7,-7.9
 Radius:3.75
 Layer:2
 Boundary:0
+Growth_Dir:1
+Cell_Progress:97
 End_Cell
 
 CellRank:16
@@ -115,6 +147,8 @@ Center:-23.7,-7.9
 Radius:3.75
 Layer:2
 Boundary:0
+Growth_Dir:1
+Cell_Progress:98
 End_Cell
 
 CellRank:17
@@ -122,6 +156,8 @@ Center:31.6,-7.9
 Radius:3.75
 Layer:2
 Boundary:1
+Growth_Dir:0
+Cell_Progress:62
 End_Cell
 
 CellRank:18
@@ -129,6 +165,8 @@ Center:-31.6,-7.9
 Radius:3.75
 Layer:2
 Boundary:1
+Growth_Dir:0
+Cell_Progress:89
 End_Cell
 
 CellRank:19
@@ -136,6 +174,8 @@ Center:3.95,-15.8
 Radius:3.75
 Layer:3
 Boundary:0
+Growth_Dir:2
+Cell_Progress:15
 End_Cell
 
 CellRank:20
@@ -143,6 +183,8 @@ Center:-3.95,-15.8
 Radius:3.75
 Layer:3
 Boundary:0
+Growth_Dir:1
+Cell_Progress:24
 End_Cell
 
 CellRank:21
@@ -150,6 +192,8 @@ Center:11.85,-15.8
 Radius:3.75
 Layer:3
 Boundary:0
+Growth_Dir:2
+Cell_Progress:88
 End_Cell
 
 CellRank:22
@@ -157,6 +201,8 @@ Center:-11.85,-15.8
 Radius:3.75
 Layer:3
 Boundary:0
+Growth_Dir:2
+Cell_Progress:75
 End_Cell
 
 CellRank:23
@@ -164,6 +210,8 @@ Center:19.75,-15.8
 Radius:3.75
 Layer:3
 Boundary:0
+Growth_Dir:2
+Cell_Progress:4
 End_Cell
 
 CellRank:24
@@ -171,6 +219,8 @@ Center:-19.75,-15.8
 Radius:3.75
 Layer:3
 Boundary:0
+Growth_Dir:1
+Cell_Progress:43
 End_Cell
 
 CellRank:25
@@ -178,6 +228,8 @@ Center:27.65,-15.8
 Radius:3.75
 Layer:3
 Boundary:1
+Growth_Dir:0
+Cell_Progress:50
 End_Cell
 
 CellRank:26
@@ -185,6 +237,8 @@ Center:-27.65,-15.8
 Radius:3.75
 Layer:3
 Boundary:1
+Growth_Dir:0
+Cell_Progress:12
 End_Cell
 
 CellRank:27
@@ -192,6 +246,8 @@ Center:0,-23.7
 Radius:3.75
 Layer:4
 Boundary:0
+Growth_Dir:2
+Cell_Progress:3
 End_Cell
 
 CellRank:28
@@ -199,6 +255,8 @@ Center:7.9,-23.7
 Radius:3.75
 Layer:4
 Boundary:0
+Growth_Dir:2
+Cell_Progress:99
 End_Cell
 
 CellRank:29
@@ -206,6 +264,8 @@ Center:-7.9,-23.7
 Radius:3.75
 Layer:4
 Boundary:0
+Growth_Dir:2
+Cell_Progress:50
 End_Cell
 
 CellRank:30
@@ -213,6 +273,8 @@ Center:15.8,-23.7
 Radius:3.75
 Layer:4
 Boundary:0
+Growth_Dir:2
+Cell_Progress:35
 End_Cell
 
 CellRank:31
@@ -220,6 +282,8 @@ Center:-15.8,-23.7
 Radius:3.75
 Layer:4
 Boundary:0
+Growth_Dir:2
+Cell_Progress:66
 End_Cell
 
 CellRank:32
@@ -227,6 +291,8 @@ Center:23.7,-23.7
 Radius:3.75
 Layer:4
 Boundary:1
+Growth_Dir:0
+Cell_Progress:50
 End_Cell
 
 CellRank:33
@@ -234,6 +300,8 @@ Center:-23.7,-23.7
 Radius:3.75
 Layer:4
 Boundary:1
+Growth_Dir:0
+Cell_Progress:75
 End_Cell
 
 CellRank:34
@@ -241,6 +309,8 @@ Center:3.95,-31.6
 Radius:3.75
 Layer:5
 Boundary:0
+Growth_Dir:2
+Cell_Progress:12
 End_Cell
 
 CellRank:35
@@ -248,6 +318,8 @@ Center:-3.95,-31.6
 Radius:3.75
 Layer:5
 Boundary:0
+Growth_Dir:1
+Cell_Progress:92
 End_Cell
 
 CellRank:36
@@ -255,6 +327,8 @@ Center:11.85,-31.6
 Radius:3.75
 Layer:5
 Boundary:0
+Growth_Dir:1
+Cell_Progress:43
 End_Cell
 
 CellRank:37
@@ -262,6 +336,8 @@ Center:-11.85,-31.6
 Radius:3.75
 Layer:5
 Boundary:0
+Growth_Dir:2
+Cell_Progress:22
 End_Cell
 
 CellRank:38
@@ -269,6 +345,8 @@ Center:19.75,-31.6
 Radius:3.75
 Layer:5
 Boundary:1
+Growth_Dir:0
+Cell_Progress:41
 End_Cell
 
 CellRank:39
@@ -276,6 +354,8 @@ Center:-19.75,-31.6
 Radius:3.75
 Layer:5
 Boundary:1
+Growth_Dir:0
+Cell_Progress:5
 End_Cell
 
 CellRank:40
@@ -283,6 +363,8 @@ Center:0,-39.5
 Radius:3.75
 Layer:6
 Boundary:0
+Growth_Dir:2
+Cell_Progress:9
 End_Cell
 
 CellRank:41
@@ -290,6 +372,8 @@ Center:7.9,-39.5
 Radius:3.75
 Layer:6
 Boundary:0
+Growth_Dir:1
+Cell_Progress:58
 End_Cell
 
 CellRank:42
@@ -297,6 +381,8 @@ Center:-7.9,-39.5
 Radius:3.75
 Layer:6
 Boundary:0
+Growth_Dir:2
+Cell_Progress:12
 End_Cell
 
 CellRank:43
@@ -304,6 +390,8 @@ Center:15.8,-39.5
 Radius:3.75
 Layer:6
 Boundary:1
+Growth_Dir:0
+Cell_Progress:32
 End_Cell
 
 CellRank:44
@@ -311,6 +399,8 @@ Center:-15.8,-39.5
 Radius:3.75
 Layer:6
 Boundary:1
+Growth_Dir:0
+Cell_Progress:39
 End_Cell
 
 CellRank:45
@@ -318,6 +408,8 @@ Center:0,-47.4
 Radius:3.75
 Layer:7
 Boundary:0
+Growth_Dir:2
+Cell_Progress:35
 End_Cell
 
 CellRank:46
@@ -325,6 +417,8 @@ Center:7.9,-47.4
 Radius:3.75
 Layer:7
 Boundary:0
+Growth_Dir:2
+Cell_Progress:68
 End_Cell
 
 CellRank:47
@@ -332,6 +426,8 @@ Center:-7.9,-47.4
 Radius:3.75
 Layer:7
 Boundary:0
+Growth_Dir:2
+Cell_Progress:95
 End_Cell
 
 CellRank:48
@@ -339,6 +435,8 @@ Center:15.8,-47.4
 Radius:3.75
 Layer:7
 Boundary:1
+Growth_Dir:2
+Cell_Progress:84
 End_Cell
 
 CellRank:49
@@ -346,5 +444,7 @@ Center:-15.8,-47.4
 Radius:3.75
 Layer:7
 Boundary:1
+Growth_Dir:2
+Cell_Progress:16
 End_Cell
 

@@ -59,7 +59,8 @@ class Cell: public enable_shared_from_this<Cell> {
 	public:
 
 		Cell(Tissue* tissue);
-		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem);
+		//EQ002, EQ003
+		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem, int gd, int initial_CP);
 		void make_nodes(double radius);	
 		// Destructor
 		~Cell();

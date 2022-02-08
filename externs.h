@@ -25,4 +25,8 @@ extern int NUM_STEPS_PER_FRAME;
 extern int RECENT_DIV_NUM_FRAMES;
 extern int VTK_PER_DATA_POINT;
 extern int Weird_WUS;
+
+extern double K_LINEAR_STIFF; //EQ007
+extern double STEM_DAMP; //EQ008
+extern double CENTROID_NOISE; //EQ009
 #endif

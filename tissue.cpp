@@ -50,6 +50,11 @@ Tissue::Tissue(string filename, mt19937 gen) {
 	int layer;
 	int boundary;
 	int stem;
+	//EQ002
+	int gd;
+
+	//EQ003 
+	int initial_CP;
 	double radius;
 	Coord center;
 	double x, y;
@@ -79,6 +84,12 @@ Tissue::Tissue(string filename, mt19937 gen) {
 		else if(temp == "Stem"){
 			ss >> stem;
 		}
+		else if(temp == "Growth_Dir"){ //EQ002
+			ss >> gd;
+		}
+		else if(temp == "Cell_Progress"){ //EQ003
+			ss >> initial_CP;
+		}
 		else if (temp == "End_Cell") {
 			//create new cell with collected data 
 			//and push onto vector that holds all cells in tissue 
@@ -88,7 +99,8 @@ Tissue::Tissue(string filename, mt19937 gen) {
 			} else { 
 				stem = 0;
 			}
-			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
+			//EQ002 - Added gd EQ003 - Added initial CP
+			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem, gd, initial_CP);
 			//give that cell wall nodes and internal nodes
 			curr->make_nodes(radius);
 			//curr->make_nodes_experimental("experimental_nodes.txt");
