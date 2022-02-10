@@ -147,15 +147,15 @@ const int STEM_LAYER = 7;
 //double OOP_PROBABILITY = 0.5 (Default)
 const double CZ_RADIUS = 29.29/2; //Alex's data gave 29.29 microns
 
-const double CZ_APICAL_CORPUS_OOP_PROB = 0.18;
+const double CZ_APICAL_CORPUS_OOP_PROB = 0.178;
 const double PZ_APICAL_CORPUS_OOP_PROB = 0.29;
-const double CZ_BASAL_CORPUS_OOP_PROB = 0.11;
-const double PZ_BASAL_CORPUS_OOP_PROB = 0.18;
+const double CZ_BASAL_CORPUS_OOP_PROB = 0.105;
+const double PZ_BASAL_CORPUS_OOP_PROB = 0.182;
 
-const double CZ_OOP_PROB_L1 = 0.73;
-const double PZ_OOP_PROB_L1 = 0.40;
-const double CZ_OOP_PROB_L2 = 0.12;
-const double PZ_OOP_PROB_L2 = 0.50;
+const double CZ_OOP_PROB_L1 = 0.474;//0.73;
+const double PZ_OOP_PROB_L1 = 0.434;
+const double CZ_OOP_PROB_L2 = 0.474;
+const double PZ_OOP_PROB_L2 = 0.434;
 
 
 /////// VTK parameters

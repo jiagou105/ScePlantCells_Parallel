@@ -27,6 +27,7 @@ int main(int argc, char* argv[]) {
 	char WUS_CF[100]= "";
 	char CK_CF[100] = "";
 	char WUS_LEVEL[100] = "";
+	char ALT_NAME[100] = "";
 	//Include trailing / in string
 	string bigdata_path = "/bigdata/alberlab/shared/";
 	string subfolder;
@@ -34,6 +35,7 @@ int main(int argc, char* argv[]) {
 	int divDataCutoff;
 	bool bigdata = false;
 	bool has_subfolder = false;
+	bool has_alt_name = false;
 	bool printing_vtks = true;
 	bool printing_nematic = false;
 
@@ -68,10 +70,18 @@ int main(int argc, char* argv[]) {
 		} else if (!strcmp(argv[i], "-subfolder")) { 
 			has_subfolder = true;
 			subfolder = argv[i+1];
-		}
+		} else if (!strcmp(argv[i], "-sh")) { 
+			has_alt_name = true;
+			strcpy(ALT_NAME,argv[i+1]);
+		} 
 	}
-
-	ofs.open("AUTO_BATCH.sh");
+	char NAME[100];
+	if (has_alt_name) { 
+		strcpy(NAME,strcat(ALT_NAME,".sh"));
+	} else { 
+		strcpy(NAME,"AUTO_BATCH.sh");
+	}
+	ofs.open(NAME);
 
 	if (!strlen(test)) {
 		cout << "Test name: ";

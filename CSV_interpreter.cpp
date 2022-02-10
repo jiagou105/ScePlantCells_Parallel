@@ -31,14 +31,27 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
+	bool pre_given_k = false;
+	int k;
+	for (int i = 1; i < argc; i++) { 
+		if (!strcmp(argv[i], "-begin")) { 
+			k = stoi(argv[i+1]);
+			pre_given_k = true;
+		}
+	}
+
 
 	//initialize variables
 	string cell;
 	string line;	
 	//Iterator for the loop
-	int k;
-	cout << "Please enter integer k for row 1's index: ";
-	cin >> k;
+	if (!pre_given_k) { 
+		cout << "Please enter integer k for row 1's index: ";
+		cin >> k;
+	} else if (k <= 0) { 
+		cout << "Please enter positive integer k" << endl;
+		exit(1);
+	}
 	k = k-1;
 	vector<string> batch_info;
 	batch_info.clear();
@@ -57,10 +70,15 @@ int main(int argc, char* argv[]) {
 	//test_name_index
 	unsigned int NI = 0;
 	unsigned int test_name_index;
+	unsigned int batch_name_index;
+	bool alt_name = false;
 	while(getline(ss,cell,',')) { 
 		NI++;
 		if (!strcmp(cell.c_str(),"-test")) { 
 			test_name_index = NI;
+		} else if (!strcmp(cell.c_str(),"-sh")) { 
+			batch_name_index = NI;
+			alt_name = true;
 		}
 		batch_info.push_back(cell);
 	}
@@ -109,7 +127,12 @@ int main(int argc, char* argv[]) {
 		//Wait 2 seconds for batch file to generate.	
 		sleep(2);
 		//Submit batch file
-		system("sbatch AUTO_BATCH.sh");
+		if (!alt_name) { 
+			system("sbatch AUTO_BATCH.sh"); 
+		} else { 
+			string sbatch_command = "sbatch " + batch_info.at(batch_name_index) + ".sh";
+			system(sbatch_command.c_str());
+		}
 		//Wait 6 seconds for batch to submit properly.
 		sleep(6);
 	}

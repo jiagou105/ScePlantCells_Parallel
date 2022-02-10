@@ -51,7 +51,7 @@ int BOUNDARY_PULL_TYPE = 2; // ./batchGenerator -par -BPT
 //0 is off;
 //1 is boundary pulled until theta formed is >= THETA_ABC (Anchored Boundary Condition / ABC)
 //2 is continuous pulling by magnitude BOUNDARY_FORCE_MAGNITUDE along curve (Forced Boundary Condition / FBC)
-double BOUNDARY_FORCE_MAGNITUDE = 226.7350; // ./batchGenerator -par -BFM : Experimental lower bound is 139.9599, upper bound is 313.5101, default is mean.
+double BOUNDARY_FORCE_MAGNITUDE = 233.0091; // ./batchGenerator -par -BFM : Experimental lower bound is 139.9599, upper bound is 313.5101, default is mean.
 bool L1_L2_FORCED_ANTICLINAL_DIV = true;
 int Weird_WUS = 0;
 //Must be declared in externs.h
