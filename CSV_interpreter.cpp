@@ -31,14 +31,25 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
+	bool begin_1 = false;
+	for (int i = 1; i < argc; i++) { 
+		if (!strcmp(argv[i], "-begin_1")) { 
+			begin_1 = true;
+		}
+	}
+
 
 	//initialize variables
 	string cell;
 	string line;	
 	//Iterator for the loop
 	int k;
-	cout << "Please enter integer k for row 1's index: ";
-	cin >> k;
+	if (!begin_1) { 
+		cout << "Please enter integer k for row 1's index: ";
+		cin >> k;
+	} else { 
+		k = 1;
+	}
 	k = k-1;
 	vector<string> batch_info;
 	batch_info.clear();

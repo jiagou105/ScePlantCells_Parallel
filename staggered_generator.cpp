@@ -10,12 +10,12 @@ using namespace std;
 int main(int argc, char* argv[]) {
 
 	ofstream ofs;
-	ofs.open("staggered_generated.txt");
-	int Layers = 8;
+	ofs.open("staggered_generated_fit.txt");
+	int Layers = 7;
 	int N = 0;
 	const double INIT_RADIUS = 3.75;
-	double lamella_width_horiz = 0.3;
-	double lamella_width_vert = 0.3;
+	double lamella_width_horiz = 0.4;
+	double lamella_width_vert = -0.6584;
 	double offset;
 	double center_spacing_h, center_spacing_v;
 	double x, y;
@@ -34,8 +34,12 @@ int main(int argc, char* argv[]) {
 		int cells_this_layer = Layers+4-i;
 		if (i == Layers) {
 			cells_this_layer++;
+			lamella_width_vert = lamella_width_horiz;
+			center_spacing_v = INIT_RADIUS * 2 + lamella_width_vert;
+			y -= center_spacing_v;
+		} else { 
+			y = (1-i) * center_spacing_v;
 		}
-		y = (1-i) * center_spacing_v;
 		offset = center_spacing_h / 2.0;
 		if (cells_this_layer%2 == 1) { 
 			ofs << "CellRank:" << N << '\n';

@@ -108,9 +108,9 @@ int main(int argc, char* argv[]) {
 			L1_L2_FORCED_ANTICLINAL_DIV = stoi(argv[i+1]) ? true : false;
 		} else if (!strcmp(argv[i], "-PRINT")) { 
 			PRINT_VTKS = stoi(argv[i+1]) ? true : false;
-		} else if(!strcmp(argv[i], "-WUS_loc")) {
+		} else if (!strcmp(argv[i], "-WUS_loc")) {
 			Weird_WUS = stoi(argv[i+1]);
-		} else if(!strcmp(argv[i], "-WUS_change")) {
+		} else if (!strcmp(argv[i], "-WUS_change")) {
 			WUS_LEVEL = stoi(argv[i+1]) ? true : false;
 		} else if (!strcmp(argv[i], "-BP")) { 
 			BOUNDARY_PULL = stoi(argv[i+1]) ? true : false;
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
 	//.txt file that tells initial
 	//cell configuration 
 	//cout << "before cell file is read in" << endl;
-	string init_tissue = "staggered_generated.txt";
+	string init_tissue = "staggered_generated_fit.txt";
 	//string init_tissue = "one_cell.txt";
 	//cout << "Read in cell starter" << endl;	
 
