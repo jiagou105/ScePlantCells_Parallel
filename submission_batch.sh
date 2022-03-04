@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --mem-per-cpu=2G
 #SBATCH --time=0-2:00:00
-#SBATCH --output=zip_log.stdout
+#SBATCH --output=batch_30_batch.stdout
 #SBATCH --job-name="Submitting CSV..."
 #SBATCH -p short
-./CSV_interpreter.out FBC_high6_2.csv -begin 101
+./CSV_interpreter.out FBC_high6_30_batch.csv -begin 451
