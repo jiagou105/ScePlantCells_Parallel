@@ -370,7 +370,7 @@ void Cell::calc_WUS(Coord L1_AVG, double WUS_dropdown) {
 	//CZ ~5 cells wide
 	//layer 1
 	//from 2018 paper
-	if (Weird_WUS == 0){
+	if (Weird_WUS == 0) {
 		double distance = (cell_center-(L1_AVG-Coord(0,WUS_dropdown))).length();
 		distance = distance * WUS_RAD_CONTRACTION_FACTOR; 
 		this->wuschel = 84.6*exp(-0.01573*(distance));
@@ -387,7 +387,7 @@ void Cell::calc_WUS(Coord L1_AVG, double WUS_dropdown) {
 		distance = distance * WUS_RAD_CONTRACTION_FACTOR; 
 		if((layer == 1)||(layer == 2)||(layer ==3)){
 			this->wuschel = 84.6*exp(-0.01573*(distance));
-		}else {
+		} else {
 			this->wuschel = 65;
 		}
 	}
@@ -757,8 +757,10 @@ double Cell::compute_k_bend(shared_ptr<Wall_Node> current) {
 		theta = acos( min( max(costheta,-1.0), 1.0) );
 		//cout << "Theta: " << theta << endl;
 		if((theta < ANGLE_FIRST_QUAD) || (theta > ANGLE_SECOND_QUAD)){
+			//End caps
 			k_bend = K_BEND_STIFF;
 		} else { 
+			//Walls
 			k_bend = K_BEND_LOOSE;
 		}
 	} else {
@@ -839,7 +841,7 @@ void Cell::update_Wall_Equi_Angles() {
 		double circle_angle  = (this->num_wall_nodes-2)*pi/(this->num_wall_nodes);
 #pragma omp parallel for schedule(static,1)
 		for(unsigned int i = 0; i < walls.size();i++) {	
-			if(this->growth_direction != Coord(0,0)){
+			if(this->growth_direction != Coord(0,0)) {
 				curr_vec = walls.at(i)->get_Left_Neighbor()->get_Location() - walls.at(i)->get_Location();
 				curr_len = curr_vec.length();	
 				growth_len = this->growth_direction.length();
@@ -1170,7 +1172,7 @@ void Cell::update_Node_Locations(int Ti) {
 #pragma omp parallel 
 	{	
 #pragma omp for schedule(static,1)
-		for(unsigned int i=0; i< walls.size();i++) {
+		for(unsigned int i = 0; i < walls.size(); i++) {
 			//cout << "update locaation" << endl;
 			walls.at(i)->update_Location(Ti);
 		}

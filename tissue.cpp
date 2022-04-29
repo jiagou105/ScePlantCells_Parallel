@@ -88,7 +88,7 @@ Tissue::Tissue(string filename, mt19937 gen) {
 			} else { 
 				stem = 0;
 			}
-			shared_ptr<Cell> curr= make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
+			shared_ptr<Cell> curr = make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
 			//give that cell wall nodes and internal nodes
 			curr->make_nodes(radius);
 			//curr->make_nodes_experimental("experimental_nodes.txt");
@@ -260,11 +260,13 @@ Coord Tissue::Compute_L1_AVG() {
 	Coord avg;
 	vector<pair<double,unsigned int>> dist_coord_pairs;
 	double avgx = 0;
+	int num_L1 = 0;
 	for(unsigned int i = 0; i < cells.size(); i++) {
 		if (cells.at(i)->get_Layer() == 1) {
 			//cout << "counter: " << counter <<  endl;
 			//cout << cells.at(i)->get_Cell_Center().get_X()<< endl;
 			avgx = avgx + cells.at(i)->get_Cell_Center().get_X();
+			num_L1++;
 			//cout << cells.at(i)->get_Cell_Center().get_Y() << endl;
 			//avgy = avgy + cells.at(i)->get_Cell_Center().get_Y();
 			//cout << avgx << "avg x" << endl;
@@ -272,7 +274,7 @@ Coord Tissue::Compute_L1_AVG() {
 			//counter++;
 		}
 	}
-	avgx = avgx/cells.size();
+	avgx = avgx/static_cast<double>(num_L1);
 	for (unsigned int i = 0; i < cells.size(); i++) { 
 		if (cells.at(i)->get_Layer() == 1) { 
 			dist_coord_pairs.push_back(make_pair(

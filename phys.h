@@ -28,8 +28,8 @@ const int TISSUE_BASE = 45;
 const double EXP_RADIUS_OF_CURV = 80.1; //51.37807; - PLACEHOLDER
 //these are used to control equi angles
 //and bending spring constants
-const double ANGLE_FIRST_QUAD = 0.785398;
-const double ANGLE_SECOND_QUAD = 2.35619;
+const double ANGLE_FIRST_QUAD = 0.785398; // Pi/4
+const double ANGLE_SECOND_QUAD = 2.35619; // 3Pi/4
 const double ANGLE_FIRST_QUAD_Div = .43;
 const double ANGLE_SECOND_QUAD_Div = 2.7;
 //HIGH_ANGLE_DISCOUNT = x  means that for calculating division plane, only the bottom x% of nodes
