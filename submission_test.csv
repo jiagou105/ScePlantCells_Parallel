@@ -1,0 +1,4 @@
+-p,short,-cores,12,-hours,2,-test,TEST1,-subfolder,Test_Output/,-par,-div,4,-par,-PRINT,1
+-TC,-WR,-CKR
+4,1,1
+3,1.5,0.65
