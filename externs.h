@@ -15,8 +15,6 @@ extern bool OUT_OF_PLANE_GROWTH;
 extern bool UNIFORM_OOP_DIST;
 extern bool CHEMICAL_GD;
 extern bool BOUNDARY_PULL;
-extern int BOUNDARY_PULL_TYPE;
-extern double BOUNDARY_FORCE_MAGNITUDE;
 extern bool L1_L2_FORCED_ANTICLINAL_DIV;
 extern double THETA_ABC;
 //Periclinal exempt as an idea
@@ -25,4 +23,13 @@ extern int NUM_STEPS_PER_FRAME;
 extern int RECENT_DIV_NUM_FRAMES;
 extern int VTK_PER_DATA_POINT;
 extern int Weird_WUS;
+
+
+
+// BOUNDARY
+extern int BOUNDARY_PULL_TYPE;
+extern double BOUNDARY_FORCE_MAGNITUDE;
+
+
+
 #endif

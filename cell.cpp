@@ -1408,40 +1408,70 @@ void Cell::set_Init_Num_Nodes(double inn) {
 }
 void Cell::identify_Boundaries() {
 	vector<shared_ptr<Wall_Node>> walls;
-	double x2 = BOUNDARY_X2;
-	double x1 = BOUNDARY_X1;
-	double y2 = BOUNDARY_Y2;
-	double y1 = BOUNDARY_Y1;
-	double positive_m = (y2-y1)/(x2-x1);
-	//Y intercept is the same due to evenness of initial condition.
-	double y_int = positive_m*(-x1)+y1;
-	double my_x, my_y;
-	this->get_Wall_Nodes_Vec(walls);
-	shared_ptr<Wall_Node> current;
-	shared_ptr<Wall_Node> left_neighbor;
-	current = walls.at(0);
-	shared_ptr<Wall_Node> start = current;
-	do {
-		if (this->boundary == 0 || this->layer == STEM_LAYER) { 
-			current->set_Is_Boundary(false);
-		} else if (current->get_adh_vec().size() > 0)  {
-			current->set_Is_Boundary(false);
-		} else {
-			//Non-adhered boundary cells beneath line
-			my_x = current->get_Location().get_X();
-			my_y = current->get_Location().get_Y();
-			if ((my_y < (positive_m*(my_x) + y_int)) ||
-					(my_y < ((-1)*positive_m*(my_x) + y_int) )) { 
-				current->set_Is_Boundary(true);
+
+	//This method identifies all nodes left of the line defined by (x1,y1) and (x2,y2).
+	if (BOUNDARY_X2 == BOUNDARY_X1) {
+		//Case when the line is vertical, or when both points are equal.
+		double x = BOUNDARY_X1;
+		this->get_Wall_Nodes_Vec(walls);
+		shared_ptr<Wall_Node> current;
+		shared_ptr<Wall_Node> left_neighbor;
+		current = walls.at(0);
+		shared_ptr<Wall_Node> start = current;
+		double my_x;
+		do {
+			//Loop through all nodes; see if 
+			if (this->boundary == 0 || this->layer == STEM_LAYER) { 
+				current->set_Is_Boundary(false);
+			} else if (current->get_adh_vec().size() > 0)  {
+				current->set_Is_Boundary(false);
+			} else {
+				//Non-adhered boundary cells beneath line
+				my_x = current->get_Location().get_X();
+				if (my_x < x) { 
+					current->set_Is_Boundary(true);
+				}
 			}
+			left_neighbor = current->get_Left_Neighbor();
+			current = left_neighbor;
+		} while(current != start);
 
-			
-		}
-		left_neighbor = current->get_Left_Neighbor();
-		current = left_neighbor;
-	} while(current != start);
 
-	return;
+		return;
+	} else { 
+		// Case when the line is not vertical.
+		double x2 = BOUNDARY_X2;
+		double x1 = BOUNDARY_X1;
+		double y2 = BOUNDARY_Y2;
+		double y1 = BOUNDARY_Y1;
+		double positive_m = (y2-y1)/(x2-x1);
+		//Y intercept is the same due to evenness of initial condition.
+		double y_int = positive_m*(-x1)+y1;
+		double my_x, my_y;
+		this->get_Wall_Nodes_Vec(walls);
+		shared_ptr<Wall_Node> current;
+		shared_ptr<Wall_Node> left_neighbor;
+		current = walls.at(0);
+		shared_ptr<Wall_Node> start = current;
+		do {
+			if (this->boundary == 0 || this->layer == STEM_LAYER) { 
+				current->set_Is_Boundary(false);
+			} else if (current->get_adh_vec().size() > 0)  {
+				current->set_Is_Boundary(false);
+			} else {
+				//Non-adhered boundary cells beneath line
+				my_x = current->get_Location().get_X();
+				my_y = current->get_Location().get_Y();
+				if ((my_y < (positive_m*(my_x) + y_int)) ||
+						(my_y < ((-1)*positive_m*(my_x) + y_int) )) { 
+					current->set_Is_Boundary(true);
+				}
+			}
+			left_neighbor = current->get_Left_Neighbor();
+			current = left_neighbor;
+		} while(current != start);
+		return;
+	}
 }
 void Cell::add_Wall_Node_Check(int Ti) {
 	//cout << "adding a wall node" << endl;

@@ -46,16 +46,17 @@ int VTK_PER_DATA_POINT = 5;
 int RECENT_DIV_NUM_FRAMES = 10;
 double THETA_ABC = 0.78539816339; // Default to pi / 4
 bool CHEMICAL_GD = true; //./batchGenerator -par -Chem_GD <1 or 0>
-bool BOUNDARY_PULL = true; //./batchGenerator -par -BP <1 or 0>
-int BOUNDARY_PULL_TYPE = 2; // ./batchGenerator -par -BPT
-//0 is off;
-//1 is boundary pulled until theta formed is >= THETA_ABC (Anchored Boundary Condition / ABC)
-//2 is continuous pulling by magnitude BOUNDARY_FORCE_MAGNITUDE along curve (Forced Boundary Condition / FBC)
-double BOUNDARY_FORCE_MAGNITUDE = 233.0091; // ./batchGenerator -par -BFM : Experimental lower bound is 139.9599, upper bound is 313.5101, default is mean.
 bool L1_L2_FORCED_ANTICLINAL_DIV = true;
 int Weird_WUS = 0;
 //Must be declared in externs.h
 //For clarity, listed as comments in phys.h
+
+//BOUNDARY
+bool BOUNDARY_PULL = true; //./batchGenerator -par -BP <1 or 0>
+int BOUNDARY_PULL_TYPE = 2; // ./batchGenerator -par -BPT
+//BOUNDARY_PULL_TYPE is used to pick what nodes are chosen to be boundadry nodes.
+double BOUNDARY_FORCE_MAGNITUDE = 233.0091; // ./batchGenerator -par -BFM : Experimental lower bound is 139.9599, upper bound is 313.5101, default is mean.
+//Calibrated to be nanonewtons.  Note that this force is distributed across all boundary wall nodes.
 
 int main(int argc, char* argv[]) {
 
