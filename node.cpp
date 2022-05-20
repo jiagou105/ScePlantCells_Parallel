@@ -575,6 +575,13 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 		}
 
 
+		//Put in checks for 
+		//Scab force
+		//Put "Leading " boolean on every cell on the front.
+		//Probably add this to the initial condition and cell_div files.
+		//BL_Attraction
+		//Updated boundary force.
+
 	}
 
 	new_force = sum;
