@@ -6,11 +6,12 @@
 using namespace std;
 
 //Makes a file "18rings.txt" that represents an initial condition of 18 concentric circles
-
+// make the initial configuration of the model
 int main(int argc, char* argv[]) {
 
 	ofstream ofs;
-	ofs.open("staggered_generated.txt");
+	// ofs.open("staggered_generated.txt");
+	ofs.open("three_by_three.txt");
 	int Layers = 8;
 	int N = 0;
 	const double INIT_RADIUS = 3.75;

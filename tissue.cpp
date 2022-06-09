@@ -88,7 +88,7 @@ Tissue::Tissue(string filename, mt19937 gen) {
 			} else { 
 				stem = 0;
 			}
-			shared_ptr<Cell> curr = make_shared<Cell>(rank, center, radius, my_tissue, layer,boundary, stem);
+			shared_ptr<Cell> curr = make_shared<Cell>(rank, center, radius, my_tissue, layer, boundary, stem);
 			//give that cell wall nodes and internal nodes
 			curr->make_nodes(radius);
 			//curr->make_nodes_experimental("experimental_nodes.txt");
@@ -380,6 +380,7 @@ void Tissue::refresh_Wall_Nodes() {
 }
 void Tissue::identify_Boundaries() { 
 	for (unsigned int i = 0; i < cells.size(); i++) { 
+		// if (cells.at(i)->is_boundary == true)
 		cells.at(i)->identify_Boundaries();
 	}
 	return;
@@ -603,8 +604,9 @@ void Tissue::update_Adhesion() {
 	return;
 }
 //Updates the direction that boundaries are stretched
-void Tissue::update_Boundary_Directions() {
-	Coord left_top = cells.at(9)->get_Cell_Center();
+
+ void Tissue::update_Boundary_Directions() {
+	/* Coord left_top = cells.at(9)->get_Cell_Center();
 	Coord right_top = cells.at(8)->get_Cell_Center();
 	Coord curv_cent = top_cell_center - Coord(0,EXP_RADIUS_OF_CURV);
 	Coord proto_left = (left_top - curv_cent).perpVector();
@@ -623,6 +625,16 @@ void Tissue::update_Boundary_Directions() {
 	}
 
 	return;
+	*/
+	Coord left_boundary_dir = Coord(-1,0);
+	Coord right_boundary_dir = Coord(-1,0);
+
+	if (left_boundary_dir.get_X() > 0) { 
+		left_boundary_dir = Coord(0,-1);
+	}
+	if (right_boundary_dir.get_X() < 0) { 
+		right_boundary_dir = Coord(0,-1);
+	}
 }
 
 void Tissue::update_Num_Boundary_Nodes() { 

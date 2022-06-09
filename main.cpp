@@ -41,8 +41,8 @@ double WUS_RAD_CONTRACTION_FACTOR = 1;//./batchGenerator -par -WR <double>
 double CK_RAD_CONTRACTION_FACTOR = 1; //./batchGenerator -par -CKR <double>
 int PRINT_VTKS = true; // ./batchGenerator -par -PRINT <1 or 0>
 int TENSILE_CALC = 4; //./batchGenerator -par TC <int> 
-int NUM_STEPS_PER_FRAME = 2500;
-int VTK_PER_DATA_POINT = 5;
+int NUM_STEPS_PER_FRAME = 50; //
+int VTK_PER_DATA_POINT = 5; // n: every n video frame, export detailed data.
 int RECENT_DIV_NUM_FRAMES = 10;
 double THETA_ABC = 0.78539816339; // Default to pi / 4
 bool CHEMICAL_GD = true; //./batchGenerator -par -Chem_GD <1 or 0>
@@ -146,7 +146,8 @@ int main(int argc, char* argv[]) {
 	//.txt file that tells initial
 	//cell configuration 
 	//cout << "before cell file is read in" << endl;
-	string init_tissue = "staggered_generated.txt";
+	string init_tissue = "three_by_three.txt";
+	// string init_tissue = "staggered_generated.txt";
 	//string init_tissue = "one_cell.txt";
 	//cout << "Read in cell starter" << endl;	
 

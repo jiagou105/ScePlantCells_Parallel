@@ -67,7 +67,7 @@ class Tissue {
 		int return_counts(int index);
 		void set_up_counts();
 		void refresh_Wall_Nodes();
-		void identify_Boundaries();
+		
 		void set_counts(int index);
 		void assign_dist_vecs(vector<int> dist1, vector<int>dist2, vector<int> dist3, vector<int> dist4);
 		int get_next_random(int dist, int count);
@@ -80,7 +80,8 @@ class Tissue {
 		double get_normal_number(double mean, double sigma); //mt19937 get_Random_Generator(){return gen;}
 		
 		// Boundary Functions
-
+		
+		void identify_Boundaries();
 		void update_Boundary_Directions();
 		void update_Num_Boundary_Nodes();
 		int get_Num_Boundary_Nodes(){return num_boundary_nodes;}

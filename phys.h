@@ -109,9 +109,9 @@ const bool BOUNDARY_DIVISION = false;
 //
 //These define the lines (Symmetric about zero) that define the initial boundary nodes.
 //Points defining positively-sloped line on the right
-const double BOUNDARY_X1 = 35.5;
+const double BOUNDARY_X1 = -8;
 const double BOUNDARY_Y1 = 0;
-const double BOUNDARY_X2 = 15.5;
+const double BOUNDARY_X2 = -8;
 const double BOUNDARY_Y2 = -40;
 //All cells with layer >= STEM_LAYER will have stem damping and effects.
 const int STEM_LAYER = 7;

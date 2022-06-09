@@ -28,7 +28,7 @@
 Cell::Cell(Tissue* tissue) {
 	my_tissue = tissue;
 	//rank assigned in division function
-	//layer inherited from parent	
+	//layer inherited from parent
 	//boundary cells don't divide
 	boundary = 0;
 	//stem cells don't divide 
@@ -106,7 +106,8 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	} else {
 		Cell_Progress = my_tissue->unifRand(0.5,0.75);
 	}*/
-	Cell_Progress = my_tissue->unifRand(0.15,0.85);
+	Cell_Progress = my_tissue->unifRand(0.15,0.85); 
+	// what are those propabilities above??? 
 	
 	//cout << "CELL PROGRESS CONSTRUCTOR: " << Cell_Progress << endl;
 	//Cell_Progress = my_tissue->unifRandInt(0,10);
@@ -188,6 +189,7 @@ ss.clear();
 ifs.close();
 }*/
 
+// make a circular chain of nodes for the wall nodes ???
 void Cell::make_nodes(double radius){
 
 	//assemble the membrane
@@ -197,7 +199,7 @@ void Cell::make_nodes(double radius){
 	//make all wall nodes
 	double curr_X;
 	double curr_Y;
-	Coord location = this->cell_center;;
+	Coord location = this->cell_center;
 	double curr_theta = 0;
 	curr_X = cell_center.get_X() + radius*cos(curr_theta);
 	curr_Y = cell_center.get_Y() + radius*sin(curr_theta);
@@ -703,7 +705,7 @@ double Cell::compute_membr_thresh(shared_ptr<Wall_Node> current) {
 }
 
 double Cell::compute_k_lin(shared_ptr<Wall_Node> current) {
-	//had the idea that changin linear springs would create a
+	//had the idea that changing linear springs would create a
 	//growth direction bias
 	//but linear springs did not have the larges effect
 	//for now all spring have the same linear spring constant
@@ -1444,7 +1446,7 @@ void Cell::identify_Boundaries() {
 		double x1 = BOUNDARY_X1;
 		double y2 = BOUNDARY_Y2;
 		double y1 = BOUNDARY_Y1;
-		double positive_m = (y2-y1)/(x2-x1);
+		double positive_m = abs((y2-y1)/(x2-x1)); 
 		//Y intercept is the same due to evenness of initial condition.
 		double y_int = positive_m*(-x1)+y1;
 		double my_x, my_y;
@@ -1462,8 +1464,13 @@ void Cell::identify_Boundaries() {
 				//Non-adhered boundary cells beneath line
 				my_x = current->get_Location().get_X();
 				my_y = current->get_Location().get_Y();
+				/*
 				if ((my_y < (positive_m*(my_x) + y_int)) ||
 						(my_y < ((-1)*positive_m*(my_x) + y_int) )) { 
+					current->set_Is_Boundary(true);
+				}*/
+				// CAUTION!!! NOT NECESSARILY SYMMETRIC AROUND ZERO
+				if (my_y < ((-1)*positive_m*(my_x) + y_int) ) { 
 					current->set_Is_Boundary(true);
 				}
 			}
@@ -1473,6 +1480,7 @@ void Cell::identify_Boundaries() {
 		return;
 	}
 }
+
 void Cell::add_Wall_Node_Check(int Ti) {
 	//cout << "adding a wall node" << endl;
 	//#pragma omp for schedule(static,1)

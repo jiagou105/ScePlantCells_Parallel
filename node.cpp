@@ -519,6 +519,11 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 	//adhesion between neighboring cell
 	sum += calc_Morse_DC(Ti);
 	//cout << "DC Success" << calc_Morse_DC(Ti) << endl;
+	/*
+	if (cells.at(i)-> is_basal == true) {
+		sum += calc_basal_force()
+	}
+	*/
 	
 	bool boundary_check = this->is_Boundary() && BOUNDARY_PULL;
 	bool boundary_freeze = false;
@@ -545,6 +550,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 				exit(1);
 				break;
 		}*/
+		/*
 		int layer = get_My_Cell()->get_Layer();
 		switch(BOUNDARY_PULL_TYPE) {
 			case 0:
@@ -564,14 +570,17 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 				exit(1);
 				break;
 		}
-
+		*/
 
 		if (boundary_check) { 
+			/*
 			if (boundary_freeze && get_My_Cell()->get_Tissue()->get_Theta_Flag()) {
 				sum = sum * 0;
 			} else { 
 				sum += calc_Boundary_Force(num_boundary_nodes,Ti);
 			}
+			*/
+			sum += calc_Boundary_Force(num_boundary_nodes,Ti);
 		}
 
 
@@ -698,6 +707,7 @@ Coord Wall_Node::calc_Boundary_Force(int Ti) {
 */
 Coord Wall_Node::calc_Boundary_Force(int num_boundary_nodes,int Ti) { 
 	Coord direction;
+	/*
 	if (get_Location().get_X() > 0) { 
 		//Right side of SAM boundary
 		direction = get_My_Cell()->get_Tissue()->get_Right_Boundary_Direction();
@@ -708,9 +718,35 @@ Coord Wall_Node::calc_Boundary_Force(int num_boundary_nodes,int Ti) {
 	if (direction.get_Y() > 0) { 
 		direction = Coord(0,0) - direction;
 	}
+	*/
+	direction = get_My_Cell()->get_Tissue()->get_Left_Boundary_Direction();
 	direction = direction * BOUNDARY_FORCE_MAGNITUDE / static_cast<double>(num_boundary_nodes); 
 	return direction;
 }
+
+
+
+/*
+Coord Wall_Node::calc_Basal_Force(int num_boundary_nodes,int Ti) { 
+	Coord direction;
+	
+	if (get_Location().get_X() > 0) { 
+		//Right side of SAM boundary
+		direction = get_My_Cell()->get_Tissue()->get_Right_Boundary_Direction();
+	} else { 
+		//Left side of SAM boundary
+		direction = get_My_Cell()->get_Tissue()->get_Left_Boundary_Direction();
+	}
+	if (direction.get_Y() > 0) { 
+		direction = Coord(0,0) - direction;
+	}
+
+	direction = get_My_Cell()->get_Tissue()->get_Left_Boundary_Direction();
+	direction = direction * BASAL_FORCE_MAGNITUDE / static_cast<double>(num_boundary_nodes); 
+	return direction;
+}
+*/
+
 
 //===========================================================
 // Mathematical force calculations

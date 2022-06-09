@@ -138,6 +138,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord calc_Bending();
 		Coord calc_Morse_DC(int Ti);
 		Coord calc_Boundary_Force(int num_boundary_nodes,int Ti);
+		// Coord calc_Basal_Force(int num_boundary_nodes,int Ti);
 		Coord neighbor_nodes(shared_ptr<Cell> neighbor,int Ti);
 		void getCircleVars(double& h, double& k);
 		Coord calc_Outward_Vector(); 
