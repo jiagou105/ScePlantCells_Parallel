@@ -61,10 +61,11 @@ Cell::Cell(Tissue* tissue) {
 }
 //this constructor is used to initialize first set of cells
 //calls set_growth_rate which detemrines growth rate based on WUS CONC
-Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem)    {
+Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem, int leader)    {
 	this->my_tissue = tiss;
 	this->rank = rank;
 	this->layer = layer;
+	this->leader = leader;
 	set_Lineage(rank);
 	recent_div = false;
 	//Determines if this tissue is growing out of plane initially
@@ -580,7 +581,8 @@ void Cell::update_growth_direction(){
 	//signaling stuff
 	//Isotropic growth if you're not growing this cycle or if
 	//you're in the boundary
-	
+	this->growth_direction = Coord(0,0);
+	/*
 	if (CHEMICAL_GD) { 
 		if (HILL_PROB) { 
 
@@ -626,6 +628,7 @@ void Cell::update_growth_direction(){
 			}
 		}
 	}
+	*/
 	this->update_node_parameters_for_growth_direction();
 	return;
 }
@@ -674,6 +677,12 @@ void Cell::set_Terminal(bool t) {
 	this->terminal = t;
 	return;
 }
+
+void Cell::set_Leader(int L) { 
+	this->leader = L;
+	return;
+}
+
 double Cell::compute_membr_thresh(shared_ptr<Wall_Node> current) {
 	//ran simulations changing equilibrium length to 
 	//introduce a growth bias and it did not have a 
@@ -1258,7 +1267,8 @@ void Cell::division_check() {
 	bool cell_cycle_check = (this->Cell_Progress >= 1); 
 
 	//Case where the cell divides.
-	if (cross_section_check && boundary_check && cell_cycle_check) { 
+	//if (cross_section_check && boundary_check && cell_cycle_check) { 
+	if (false) {
 		my_tissue->update_IP_Divs();
 		my_tissue->update_Divs();
 

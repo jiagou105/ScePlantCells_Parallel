@@ -159,6 +159,12 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		double get_Updated_Tensile_Stress();
 		double calc_Shear_Stress();
 
+		//BASEMENT MEMBRANE FORCE
+		Coord calc_Basement_Force();
+		
+		//SCAB FORCE 
+		Coord calc_Scab_Force();
+		
 };
 //===========================
 #endif  

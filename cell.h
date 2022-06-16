@@ -33,6 +33,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		int layer;
 		int lineage;
 		int boundary;
+		int leader; 
 		int stem;
 		double damping;
 		int life_length;
@@ -59,7 +60,7 @@ class Cell: public enable_shared_from_this<Cell> {
 	public:
 
 		Cell(Tissue* tissue);
-		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem);
+		Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int boundary, int stem, int leader);
 		void make_nodes(double radius);	
 		// Destructor
 		~Cell();
@@ -144,6 +145,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		//set/get cell terminal state
 		void set_Terminal(bool t);
 		bool is_Terminal(){return terminal;}
+		int get_Leader() {return leader;}
+		void set_Leader(int L);
 
 		//Computations
 		double compute_membr_thresh(shared_ptr<Wall_Node> current);

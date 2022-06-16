@@ -50,6 +50,7 @@ Tissue::Tissue(string filename, mt19937 gen) {
 	int layer;
 	int boundary;
 	int stem;
+	int leader;
 	double radius;
 	Coord center;
 	double x, y;
@@ -79,6 +80,9 @@ Tissue::Tissue(string filename, mt19937 gen) {
 		else if(temp == "Stem"){
 			ss >> stem;
 		}
+		else if(temp == "leader"){
+			ss >> leader;
+		}
 		else if (temp == "End_Cell") {
 			//create new cell with collected data 
 			//and push onto vector that holds all cells in tissue 
@@ -88,7 +92,7 @@ Tissue::Tissue(string filename, mt19937 gen) {
 			} else { 
 				stem = 0;
 			}
-			shared_ptr<Cell> curr = make_shared<Cell>(rank, center, radius, my_tissue, layer, boundary, stem);
+			shared_ptr<Cell> curr = make_shared<Cell>(rank, center, radius, my_tissue, layer, boundary, stem, leader);
 			//give that cell wall nodes and internal nodes
 			curr->make_nodes(radius);
 			//curr->make_nodes_experimental("experimental_nodes.txt");
@@ -626,15 +630,16 @@ void Tissue::update_Adhesion() {
 
 	return;
 	*/
-	Coord left_boundary_dir = Coord(-1,0);
-	Coord right_boundary_dir = Coord(-1,0);
+	
+	Coord left_boundary_dir = Coord(1,0);
+	Coord right_boundary_dir = Coord(1,0);
 
-	if (left_boundary_dir.get_X() > 0) { 
+	/*if (left_boundary_dir.get_X() > 0) { 
 		left_boundary_dir = Coord(0,-1);
 	}
 	if (right_boundary_dir.get_X() < 0) { 
 		right_boundary_dir = Coord(0,-1);
-	}
+	}*/
 }
 
 void Tissue::update_Num_Boundary_Nodes() { 

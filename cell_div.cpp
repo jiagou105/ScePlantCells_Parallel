@@ -880,6 +880,7 @@ shared_ptr<Cell> Cell::division() {
 	sister->calc_WUS(L1_AVG, 2 * acd);
 	this->calc_CK(L1_AVG, 3 * acd);
 	sister->calc_CK(L1_AVG, 3 * acd);
+	sister->set_Leader(this->get_Leader());
 
 	//Set sister growth rate at random
 	/*

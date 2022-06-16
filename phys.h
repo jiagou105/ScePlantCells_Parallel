@@ -164,6 +164,13 @@ const double CYT_COLOR = 42.0;
 ////=====================
 
 
+//BASEMENT MEMBRANE FORCE CONSTANTS
+const double BASEMENT_MEMBRANE_Y_LOCATION = -19;
+const double BASEMENT_MEMBRANE_MORSE_DISTANCE = 0.2;
+const double BASEMENT_MEMBRANE_MORSE_COEFFICIENT = 15.0;
+
+
+
 //extern int NUM_STEPS_PER_FRAME
 //extern int RECENT_DIV_NUM_FRAMES
 #endif

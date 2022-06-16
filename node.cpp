@@ -524,11 +524,13 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 		sum += calc_basal_force()
 	}
 	*/
+
+	
 	
 	bool boundary_check = this->is_Boundary() && BOUNDARY_PULL;
 	bool boundary_freeze = false;
 	
-	if (boundary_check) { 
+	//if (boundary_check) { 
 		/*switch(BOUNDARY_PULL_TYPE) {
 			case 1:
 				//Layer 1 pulled
@@ -571,7 +573,8 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 				break;
 		}
 		*/
-
+	
+		
 		if (boundary_check) { 
 			/*
 			if (boundary_freeze && get_My_Cell()->get_Tissue()->get_Theta_Flag()) {
@@ -584,6 +587,18 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 		}
 
 
+		//ADDED ON June 13 2022
+		//CELL LAYER IN BOTTOM WHICH INTERACT WITH BASEMENT MEMBRANE is LAYER 3
+		// 
+		if ((this->get_My_Cell()->get_Layer() == 3)){
+			sum += calc_Basement_Force();
+		}
+		
+		//ADDED FOR SCAB SIMULATIONS ON June 13 2022
+		if ((this->get_My_Cell()->get_Leader() == 1)){
+			sum += calc_Scab_Force();
+		}
+		
 		//Put in checks for 
 		//Scab force
 		//Put "Leading " boolean on every cell on the front.
@@ -591,7 +606,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 		//BL_Attraction
 		//Updated boundary force.
 
-	}
+	
 
 	new_force = sum;
 	return;
@@ -1213,6 +1228,103 @@ Coord Wall_Node::calc_Outward_Vector() {
 	}
 	return outward;
 }
+
+
+
+//BASEMENT MEMBRANE FORCE DESCRIPTION
+//LOCATION OF BASEMENT MEMBRANE is BASEMENT_MEMBRANE_Y_LOCATION=-19.0
+
+Coord Wall_Node::calc_Basement_Force() {
+	Coord aux_force;
+	double node_y_coord = this->get_Location().get_Y();
+	bool basement_check = (node_y_coord < BASEMENT_MEMBRANE_Y_LOCATION + BASEMENT_MEMBRANE_MORSE_DISTANCE); 
+		
+		if (basement_check) {
+			double morse_force_magnitude;
+			morse_force_magnitude = BASEMENT_MEMBRANE_MORSE_COEFFICIENT * exp(-pow((node_y_coord - BASEMENT_MEMBRANE_Y_LOCATION)/BASEMENT_MEMBRANE_MORSE_DISTANCE,2));
+			aux_force += Coord(0.0,morse_force_magnitude);
+		}
+		
+		
+	return aux_force;
+}
+
+
+//SCAB FORCE DESCRIPTION
+
+Coord Wall_Node::calc_Scab_Force() {
+	Coord aux_force;
+	
+	//Vertices determining location of the scab
+	Coord A,B,C;
+	A = Coord(-7.6,7.6);
+	B = Coord(10.0,-10.0);
+	C = Coord(30.0,-10.0);
+	
+	
+	//computation of normal vectors
+	Coord nu_BA, nu_BC;
+	double nu_x, nu_y, norma;
+	nu_x = (A.get_Y() - B.get_Y());
+	nu_y = (-1) * (A.get_X() - B.get_X());
+	norma = sqrt(pow(nu_x,2) + pow(nu_y,2));
+	nu_BA = Coord(nu_x / norma,nu_y / norma);
+	
+	nu_x = (-1) * (C.get_Y() - B.get_Y());
+	nu_y = C.get_X() - B.get_X();
+	norma = sqrt(pow(nu_x,2) + pow(nu_y,2));
+	nu_BC = Coord(nu_x / norma,nu_y / norma);
+	
+	//Node coordinates
+	Coord node_c = get_location();
+	
+	//Computing projections (only sign matters)
+	double p_BA,p_BC;
+	p_BA = (node_c-B).dot(A-B);
+	//p_BA = (Node_c.get_X()-B.get_X())*(A.get_X()-B.get_X())+(Node_c.get_Y()-B.get_Y())*(A.get_Y()-B.get_Y());
+	//norma=sqrt(pow((A.get_X()-B.get_X()),2)+pow((A.get_Y()-B.get_Y()),2));
+	//p_BA=p_BA/norma;
+	
+	p_BC = (node_c-B).dot(C-B); 
+	//p_BC = (Node_c.get_X()-B.get_X())*(C.get_X()-B.get_X())+(Node_c.get_Y()-B.get_Y())*(C.get_Y()-B.get_Y());
+	//norma=sqrt(pow((C.get_X()-B.get_X()),2)+pow((C.get_Y()-B.get_Y()),2));
+	//p_BC=p_BC/norma;
+		
+	//Computing distances
+	double d_BA,d_BC,d_BN; 
+	Coord BN;
+	BN = node_c-B;
+	
+	d_BA = (-1)*BN.dot(nu_BA); 
+	//d_BA = BN.get_X()*nu_BA.get_X() + BN.get_Y()*nu_BA.get_Y();
+	d_BC = (-1)*BN.dot(nu_BC);
+	//d_BC = BN.get_X()*nu_BC.get_X() + BN.get_Y()*nu_BC.get_Y();
+	d_BN = BN.length(); 
+	//d_BN = sqrt(BN.get_X()*BN.get_X() + BN.get_Y()*BN.get_Y());
+	
+	bool close_to_scab=(min(d_BA,d_BC)<BASEMENT_MEMBRANE_MORSE_DISTANCE);
+	
+	if (close_to_scab){
+		double morse_force_magnitude;
+		if (p_BA>0) {
+			morse_force_magnitude = BASEMENT_MEMBRANE_MORSE_COEFFICIENT * exp(-pow(d_BA/BASEMENT_MEMBRANE_MORSE_DISTANCE,2));
+			aux_force -= nu_BA * morse_force_magnitude;
+		} else if (p_BC>0) {
+			morse_force_magnitude = BASEMENT_MEMBRANE_MORSE_COEFFICIENT * exp(-pow(d_BC/BASEMENT_MEMBRANE_MORSE_DISTANCE,2));
+			aux_force -= nu_BC * morse_force_magnitude;
+		} else {
+			morse_force_magnitude = BASEMENT_MEMBRANE_MORSE_COEFFICIENT * exp(-pow(d_BN/BASEMENT_MEMBRANE_MORSE_DISTANCE,2));
+			aux_force += BN * morse_force_magnitude;	
+	}
+	
+	
+			
+	return aux_force;
+}
+
+
+
+
 
 //==========================================================
 // End of node.cpp
