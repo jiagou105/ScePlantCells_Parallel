@@ -631,8 +631,8 @@ void Tissue::update_Adhesion() {
 	return;
 	*/
 	
-	Coord left_boundary_dir = Coord(1,0);
-	Coord right_boundary_dir = Coord(1,0);
+	left_boundary_dir = Coord(1,0);
+	right_boundary_dir = Coord(1,0);
 
 	/*if (left_boundary_dir.get_X() > 0) { 
 		left_boundary_dir = Coord(0,-1);

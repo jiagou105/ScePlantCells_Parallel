@@ -2,7 +2,7 @@ CellRank:0
 Center:-7.6,0
 Radius:3.75
 Layer:1
-Boundary:1
+Boundary:0
 leader:1
 End_Cell
 
@@ -10,7 +10,7 @@ CellRank:1
 Center:-7.6,-7.6
 Radius:3.75
 Layer:2
-Boundary:1
+Boundary:0
 leader:0
 End_Cell
 
@@ -26,7 +26,7 @@ CellRank:3
 Center:-7.6,-15.2
 Radius:3.75
 Layer:3
-Boundary:1
+Boundary:0
 leader:0
 End_Cell
 
@@ -44,4 +44,28 @@ Radius:3.75
 Layer:3
 Boundary:0
 leader:1
+End_Cell
+
+CellRank:6
+Center:-15.2,0
+Radius:3.75
+Layer:1
+Boundary:1
+leader:0
+End_Cell
+
+CellRank:7
+Center:-15.2,-7.6
+Radius:3.75
+Layer:2
+Boundary:1
+leader:0
+End_Cell
+
+CellRank:8
+Center:-15.2,-15.2
+Radius:3.75
+Layer:3
+Boundary:1
+leader:0
 End_Cell

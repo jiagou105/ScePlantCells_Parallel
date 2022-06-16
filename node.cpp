@@ -528,7 +528,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 	
 	
 	bool boundary_check = this->is_Boundary() && BOUNDARY_PULL;
-	bool boundary_freeze = false;
+	// bool boundary_freeze = false;
 	
 	//if (boundary_check) { 
 		/*switch(BOUNDARY_PULL_TYPE) {
@@ -1276,7 +1276,7 @@ Coord Wall_Node::calc_Scab_Force() {
 	nu_BC = Coord(nu_x / norma,nu_y / norma);
 	
 	//Node coordinates
-	Coord node_c = get_location();
+	Coord node_c = get_Location();
 	
 	//Computing projections (only sign matters)
 	double p_BA,p_BC;
@@ -1314,7 +1314,8 @@ Coord Wall_Node::calc_Scab_Force() {
 			aux_force -= nu_BC * morse_force_magnitude;
 		} else {
 			morse_force_magnitude = BASEMENT_MEMBRANE_MORSE_COEFFICIENT * exp(-pow(d_BN/BASEMENT_MEMBRANE_MORSE_DISTANCE,2));
-			aux_force += BN * morse_force_magnitude;	
+			aux_force += BN * morse_force_magnitude;
+		}	
 	}
 	
 	

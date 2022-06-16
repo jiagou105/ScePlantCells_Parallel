@@ -17,7 +17,7 @@
 //Forces are in micro-newtons
 //
 
-const double dt = .0003;
+const double dt = .00005;
 const int INIT_NUM_CYT_NODES = 15;
 const int INIT_WALL_NODES = 100;
 const double pi = acos(-1.0);
@@ -44,7 +44,7 @@ const double BOUNDARY_DAMP = 1; //was used before for boundary  (Units kg / s)
 const double STEM_DAMP = .1;
 const double REG_DAMP = 1;
 ////// Cell wall mechanical parameters
-const double K_BEND_STIFF = 13.5; //(13.5/15)  //29.688;//38.3622;
+// const double K_BEND_STIFF = 13.5; //(13.5/15)  //29.688;//38.3622;
 //17.4656;//11.8299;//52.9211;//46.4343;//4.9925;//26.4730;//35.3732;//21.2845;//6.9738;//43.5946;//48.2636;//29.6880;//39.7634;//12.7912;//31.3144;//56.4474;//58.2084;//2.1002;//20.5976;//
 const double K_BEND_LOOSE =4.5433;//12.8128;
 //9.9898;//2.5416;//10.9974;//11.1948;//5.2617;//6.1530;//3.8290;//1.4132;//7.5802;//6.9589;//0.8149;//4.5433;//0.6185;//9.3159;//4.8077;//2.9080;//11.8757;//8.6403;//7.9421;//
@@ -109,9 +109,9 @@ const bool BOUNDARY_DIVISION = false;
 //
 //These define the lines (Symmetric about zero) that define the initial boundary nodes.
 //Points defining positively-sloped line on the right
-const double BOUNDARY_X1 = -8;
+const double BOUNDARY_X1 = -15.5;
 const double BOUNDARY_Y1 = 0;
-const double BOUNDARY_X2 = -8;
+const double BOUNDARY_X2 = -15.5;
 const double BOUNDARY_Y2 = -40;
 //All cells with layer >= STEM_LAYER will have stem damping and effects.
 const int STEM_LAYER = 7;

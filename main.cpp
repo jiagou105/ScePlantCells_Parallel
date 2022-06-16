@@ -41,13 +41,14 @@ double WUS_RAD_CONTRACTION_FACTOR = 0.01;//./batchGenerator -par -WR <double>
 double CK_RAD_CONTRACTION_FACTOR = 1; //./batchGenerator -par -CKR <double>
 int PRINT_VTKS = true; // ./batchGenerator -par -PRINT <1 or 0>
 int TENSILE_CALC = 4; //./batchGenerator -par TC <int> 
-int NUM_STEPS_PER_FRAME = 50; //
+int NUM_STEPS_PER_FRAME = 100; //
 int VTK_PER_DATA_POINT = 5; // n: every n video frame, export detailed data.
 int RECENT_DIV_NUM_FRAMES = 10;
 double THETA_ABC = 0.78539816339; // Default to pi / 4
 bool CHEMICAL_GD = true; //./batchGenerator -par -Chem_GD <1 or 0>
 bool L1_L2_FORCED_ANTICLINAL_DIV = true;
 int Weird_WUS = 0;
+double K_BEND_STIFF = 13.5;
 //Must be declared in externs.h
 //For clarity, listed as comments in phys.h
 
@@ -114,6 +115,8 @@ int main(int argc, char* argv[]) {
 			BOUNDARY_FORCE_MAGNITUDE = stod(argv[i+1]);
 		} else if (!strcmp(argv[i], "-theta")) { 
 			THETA_ABC = stod(argv[i+1]);
+		} else if (!strcmp(argv[i], "-k_bend_stiff")) {
+			K_BEND_STIFF = stod(argv[i+1]);
 		}
 	}
 	if (DIV_MECHANISM == 0) { 
@@ -227,7 +230,7 @@ int main(int argc, char* argv[]) {
 	}
 	cout << "Initialized with Theta_Flag: " << growing_Tissue.get_Theta_Flag() << endl; 
 
-	int terminal_timeout = 362500; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
+	int terminal_timeout = 16000; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
 	//cout << "Setup complete" << endl;
 
 	//Delta t is approximately 0.4s
