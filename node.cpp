@@ -596,7 +596,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 		
 		//ADDED FOR SCAB SIMULATIONS ON June 13 2022
 		if ((this->get_My_Cell()->get_Leader() == 1)){
-			sum += calc_Scab_Force();
+			sum += Coord(0,0); //calc_Scab_Force(Ti); //
 		}
 		
 		//Put in checks for 
@@ -1252,14 +1252,14 @@ Coord Wall_Node::calc_Basement_Force() {
 
 //SCAB FORCE DESCRIPTION
 
-Coord Wall_Node::calc_Scab_Force() {
+Coord Wall_Node::calc_Scab_Force(int Ti) {
 	Coord aux_force;
 	
 	//Vertices determining location of the scab
 	Coord A,B,C;
-	A = Coord(-7.6,7.6);
-	B = Coord(10.0,-10.0);
-	C = Coord(30.0,-10.0);
+	A = Coord(-7.6,7.6) - Coord(0,Ti*dt*0.1);
+	B = Coord(10.0,-10.0) - Coord(0,Ti*dt*0.1);
+	C = Coord(30.0,-10.0) - Coord(0,Ti*dt*0.1);
 	
 	
 	//computation of normal vectors

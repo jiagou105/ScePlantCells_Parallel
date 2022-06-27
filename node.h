@@ -163,7 +163,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord calc_Basement_Force();
 		
 		//SCAB FORCE 
-		Coord calc_Scab_Force();
+		Coord calc_Scab_Force(int Ti);
 		
 };
 //===========================
