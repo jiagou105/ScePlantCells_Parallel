@@ -330,6 +330,13 @@ int main(int argc, char* argv[]) {
 		//cout << "forces" << endl;
 		growing_Tissue.calc_New_Forces(Ti);
 
+		// update scab pressure
+
+		if (Ti % 1 == 0){ // SCAB_LOCATION_UPDATE_FREQ not defined yet
+			growing_Tissue.update_Scab_Press(); // change to update later 
+			growing_Tissue.update_Scab_Location(Ti);
+		}
+
 		//Update node positions
 		//cout << "locations" << endl;
 		growing_Tissue.update_Cell_Locations(Ti);	

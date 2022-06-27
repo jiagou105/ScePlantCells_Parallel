@@ -78,7 +78,8 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord cyt_force;
 		double tensile_stress;
 		bool is_boundary;
-		
+		bool touch_scab;
+		Coord scab_force;
 		//variables used for adhesion
 		vector<shared_ptr<Wall_Node>> adhesion_vector;
    public:
@@ -120,7 +121,12 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		void set_added(int update);
 		int get_added() {return added;}
 		Coord get_CytForce() {return cyt_force;}
-	
+		// set/get scab force
+		void set_Scab_Force(Coord sf);
+		Coord get_Scab_Force() {return scab_force;}
+		// set/get touch scab
+		void set_Touch_Scab(bool ts);
+		double get_Touch_Scab() {return touch_scab;}
 		//Adhesion functions
 
 		void make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls);

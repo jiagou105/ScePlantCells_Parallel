@@ -38,8 +38,12 @@ class Tissue {
 		bool theta_flag; //For Anchored boundary, identifies whether 
 		// the simulation has reached its anchoring theta.
 		Coord top_cell_center;
+		Coord total_scab_press;
 		Coord left_boundary_dir;
 		Coord right_boundary_dir;
+		Coord ScabA;
+		Coord ScabB;
+		Coord ScabC;
 		mt19937 gen;
 		vector<int> dist1;
 		vector<int> dist2;
@@ -87,10 +91,17 @@ class Tissue {
 		int get_Num_Boundary_Nodes(){return num_boundary_nodes;}
 		Coord get_Right_Boundary_Direction(){return right_boundary_dir;}
 		Coord get_Left_Boundary_Direction(){return left_boundary_dir;}
+
+		// Scab functions
+		void update_Scab_Press();
+		Coord get_ScabA(){return ScabA;}
+		Coord get_ScabB(){return ScabB;}
+		Coord get_ScabC(){return ScabC;}
+		void update_Scab_Location(int Ti);
 		// Not in use --------
 		void update_Linear_Bending_Springs();
 		// ------
-		
+		// Division functions
 		void update_Cell_Cycle(int Ti);
 		void division_check();
 		void update_Divs();
@@ -131,6 +142,7 @@ class Tissue {
 		void one_To_One_Check();
 		void NAN_CATCH(int Ti);
 		void BAD_CATCH(int call, int Ti);
+
 };
 
 

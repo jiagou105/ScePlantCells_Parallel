@@ -113,6 +113,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void set_Init_Num_Nodes(double inn);
 		//Identify boundaries
 		void identify_Boundaries(); 
+		// Scab functions
+		Coord calc_Scab_Press();
 		//get cell center
 		void update_Cell_Center();
 		Coord get_Cell_Center() {return cell_center;}

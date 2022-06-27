@@ -190,6 +190,8 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	//this->closest_len = 100;
 	//adhesion pairs vec
 	this->set_Is_Boundary(false);
+	touch_scab = false;
+	scab_force = Coord(0,0);
 }
 
 Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right) : Node(loc)   {
@@ -209,6 +211,8 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> l
 	//this->closest_len = 100;
 	//adhesion pairs vec
 	this->set_Is_Boundary(false);
+	touch_scab = false;
+	scab_force = Coord(0,0);
 }
 
 Wall_Node::~Wall_Node() {
@@ -286,6 +290,17 @@ void Wall_Node::set_added(int update){
 	this->added = update;
 	return;
 }
+
+void Wall_Node::set_Scab_Force(Coord sf){
+	this->scab_force = sf;
+	return;
+}
+
+void Wall_Node::set_Touch_Scab(bool ts){
+	this->touch_scab = ts;
+	return;
+}
+
 //==========================================================
 //Adhesion functions
 //determines which nodes on neighbor cells are within adhesion
@@ -596,7 +611,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 		
 		//ADDED FOR SCAB SIMULATIONS ON June 13 2022
 		if ((this->get_My_Cell()->get_Leader() == 1)){
-			sum += Coord(0,0); //calc_Scab_Force(Ti); //
+			sum += calc_Scab_Force(Ti); // Coord(0,0);
 		}
 		
 		//Put in checks for 
@@ -1257,9 +1272,14 @@ Coord Wall_Node::calc_Scab_Force(int Ti) {
 	
 	//Vertices determining location of the scab
 	Coord A,B,C;
+	/*
 	A = Coord(-7.6,7.6) - Coord(0,Ti*dt*0.1);
 	B = Coord(10.0,-10.0) - Coord(0,Ti*dt*0.1);
 	C = Coord(30.0,-10.0) - Coord(0,Ti*dt*0.1);
+	*/
+	A  = this->my_cell->get_Tissue()->get_ScabA(); 
+	B  = this->my_cell->get_Tissue()->get_ScabB();
+	C  = this->my_cell->get_Tissue()->get_ScabC();
 	
 	
 	//computation of normal vectors
@@ -1316,9 +1336,14 @@ Coord Wall_Node::calc_Scab_Force(int Ti) {
 			morse_force_magnitude = BASEMENT_MEMBRANE_MORSE_COEFFICIENT * exp(-pow(d_BN/BASEMENT_MEMBRANE_MORSE_DISTANCE,2));
 			aux_force += BN * morse_force_magnitude;
 		}	
+		// non-zero scab force
+		this->set_Touch_Scab(true); 
+
+	} else {
+		this->set_Touch_Scab(false);
 	}
 	
-	
+	this->set_Scab_Force(aux_force);
 			
 	return aux_force;
 }

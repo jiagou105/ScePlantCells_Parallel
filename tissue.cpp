@@ -26,6 +26,10 @@ Tissue::Tissue(string filename, mt19937 gen) {
 	num_deleted = 0;
 	num_divs = 0;
 	num_IP_divs = 0;
+	total_scab_press = Coord(0,0);
+	ScabA = Coord(-7.6,7.6);
+	ScabB = Coord(10.0,-10.0);
+	ScabC = Coord(30.0,-10.0);
 	if (BOUNDARY_PULL_TYPE == 1) { 
 		time_frozen = -1;
 	} else { 
@@ -672,6 +676,27 @@ void Tissue::update_Num_Boundary_Nodes() {
 	return;
 }
 
+void Tissue::update_Scab_Location(int Ti){
+	// update ScabA, ScabB, ScabC here
+	// 
+	this->ScabA += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
+	this->ScabB += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
+	this->ScabC += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
+	return;
+}
+
+// Scab funcitons 
+void Tissue::update_Scab_Press(){
+	Coord sum;
+	// for loop check if a leader
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		if (cells.at(i)->get_Leader()){
+			sum += cells.at(i)->calc_Scab_Press();
+		}
+	}
+	this->total_scab_press = sum;
+	return;
+}
 
 //this function is not in use
 void Tissue::update_Linear_Bending_Springs(){

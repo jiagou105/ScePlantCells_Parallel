@@ -1490,6 +1490,24 @@ void Cell::identify_Boundaries() {
 		return;
 	}
 }
+Coord Cell::calc_Scab_Press(){
+	Coord sum; 
+	// loop through nodes
+	vector<shared_ptr<Wall_Node>> walls;
+	this->get_Wall_Nodes_Vec(walls);
+		shared_ptr<Wall_Node> current;
+		shared_ptr<Wall_Node> left_neighbor;
+		current = walls.at(0);
+		shared_ptr<Wall_Node> start = current;
+		do {
+			if (current->get_Touch_Scab()){
+			    sum += current->get_Scab_Force();
+			}
+			left_neighbor = current->get_Left_Neighbor();
+			current = left_neighbor;
+		} while(current != start);
+	return sum;
+}
 
 void Cell::add_Wall_Node_Check(int Ti) {
 	//cout << "adding a wall node" << endl;
