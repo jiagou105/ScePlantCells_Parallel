@@ -41,9 +41,9 @@ class Tissue {
 		Coord total_scab_press;
 		Coord left_boundary_dir;
 		Coord right_boundary_dir;
-		Coord ScabA;
-		Coord ScabB;
-		Coord ScabC;
+		Coord scabA;
+		Coord scabB;
+		Coord scabC;
 		mt19937 gen;
 		vector<int> dist1;
 		vector<int> dist2;

@@ -605,7 +605,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 				sum += calc_Boundary_Force(num_boundary_nodes,Ti);
 			}
 			*/
-			sum += calc_Boundary_Force(num_boundary_nodes,Ti);
+			sum += Coord(0,0);//calc_Boundary_Force(num_boundary_nodes,Ti);
 		}
 
 
@@ -646,7 +646,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 // calculate lamellipodia force
 Coord Wall_Node::calc_Lamellipodia_Force(int Ti){
 	Coord aux_force;
-	Coord cell_center = get_My_Cell()->get_Cell_Center();
+	Coord cell_center = this->get_My_Cell()->get_Cell_Center();
 	Coord vec_a = this->get_Location() - cell_center;
 	if (vec_a.length()>0){
 		vec_a = vec_a*(1.0/vec_a.length());

@@ -1188,7 +1188,7 @@ void Cell::update_Node_Locations(int Ti) {
 			walls.at(i)->update_Location(Ti);
 		}
 	}
-	//update cell_Center
+	//update cell_center
 	update_Cell_Center();
 	//update wall_angles
 	/*if((this->life_length == 2000)) {
@@ -1494,7 +1494,6 @@ void Cell::identify_Boundaries() {
 // identify lamellipodia nodes
 void Cell::identify_Lamellipoida() {
 	vector<shared_ptr<Wall_Node>> walls;
-	//
 	this->get_Wall_Nodes_Vec(walls);
 	shared_ptr<Wall_Node> current;
 	shared_ptr<Wall_Node> left_neighbor;
@@ -2850,7 +2849,7 @@ void Cell::NAN_CATCH(int Ti) {
 			}
 		}	
 	}
-	//update cell_Center
+	//update cell_center
 	return;
 }
 //////////////////////////////////

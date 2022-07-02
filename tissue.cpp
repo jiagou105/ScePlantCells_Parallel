@@ -27,9 +27,9 @@ Tissue::Tissue(string filename, mt19937 gen) {
 	num_divs = 0;
 	num_IP_divs = 0;
 	total_scab_press = Coord(0,0);
-	ScabA = Coord(-7.6,7.6);
-	ScabB = Coord(10.0,-10.0);
-	ScabC = Coord(30.0,-10.0);
+	scabA = Coord(-7.6,7.6);
+	scabB = Coord(10.0,-10.0);
+	scabC = Coord(30.0,-10.0);
 	if (BOUNDARY_PULL_TYPE == 1) { 
 		time_frozen = -1;
 	} else { 
@@ -679,9 +679,9 @@ void Tissue::update_Num_Boundary_Nodes() {
 void Tissue::update_Scab_Location(int Ti){
 	// update ScabA, ScabB, ScabC here
 	// 
-	this->ScabA += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
-	this->ScabB += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
-	this->ScabC += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
+	this->scabA += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
+	this->scabB += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
+	this->scabC += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
 	return;
 }
 
