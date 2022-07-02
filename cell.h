@@ -113,6 +113,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void set_Init_Num_Nodes(double inn);
 		//Identify boundaries
 		void identify_Boundaries(); 
+		// Identidy lamellipodia
+		void identify_Lamellipoida();
 		// Scab functions
 		Coord calc_Scab_Press();
 		//get cell center
@@ -260,6 +262,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void one_To_One_Check();
 		//void ensure_Only_Real_Walls();
 		void NAN_CATCH(int Ti);
+
+
 };
 
 

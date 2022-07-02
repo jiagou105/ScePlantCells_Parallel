@@ -78,6 +78,7 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord cyt_force;
 		double tensile_stress;
 		bool is_boundary;
+		bool is_lamellipodia;
 		bool touch_scab;
 		Coord scab_force;
 		//variables used for adhesion
@@ -170,7 +171,11 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		
 		//SCAB FORCE 
 		Coord calc_Scab_Force(int Ti);
-		
+
+		// lamellipodia pulling
+		Coord calc_Lamellipodia_Force(int Ti);
+		bool is_Lamellipodia(){return is_lamellipodia;}
+		void set_Is_Lamellipodia(bool status);
 };
 //===========================
 #endif  

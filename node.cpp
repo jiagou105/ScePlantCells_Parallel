@@ -190,6 +190,7 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	//this->closest_len = 100;
 	//adhesion pairs vec
 	this->set_Is_Boundary(false);
+	this->set_Is_Lamellipodia(false);
 	touch_scab = false;
 	scab_force = Coord(0,0);
 }
@@ -211,6 +212,7 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> l
 	//this->closest_len = 100;
 	//adhesion pairs vec
 	this->set_Is_Boundary(false);
+	this->set_Is_Lamellipodia(false);
 	touch_scab = false;
 	scab_force = Coord(0,0);
 }
@@ -233,6 +235,11 @@ void Wall_Node::set_Is_Boundary(bool status) {
 	this->is_boundary = status;
 	return;
 }
+void Wall_Node::set_Is_Lamellipodia(bool status) { 
+	this->is_lamellipodia = status;
+	return;
+}
+
 void Wall_Node::update_Cell(shared_ptr<Cell> new_cell) {
 	this->my_cell = new_cell;
 	return;
@@ -614,6 +621,15 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 			sum += calc_Scab_Force(Ti); // Coord(0,0);
 		}
 		
+		// add pulling force to lamellipodia node
+		bool lamepd_check = this->is_Lamellipodia();
+		if (this->get_My_Cell()->get_Leader() == 1 && this->get_My_Cell()->get_Layer() == 3){ // adjacent to scab and in layer 3
+			if (lamepd_check)
+			{
+				sum += calc_Lamellipodia_Force(Ti);
+			}
+		}
+
 		//Put in checks for 
 		//Scab force
 		//Put "Leading " boolean on every cell on the front.
@@ -626,6 +642,19 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 	new_force = sum;
 	return;
 }
+
+// calculate lamellipodia force
+Coord Wall_Node::calc_Lamellipodia_Force(int Ti){
+	Coord aux_force;
+	Coord cell_center = get_My_Cell()->get_Cell_Center();
+	Coord vec_a = this->get_Location() - cell_center;
+	if (vec_a.length()>0){
+		vec_a = vec_a*(1.0/vec_a.length());
+	} 
+	aux_force = vec_a * LAMELLIPODIA_FORCE;
+	return aux_force;
+}
+
 
 //morse potential between wall node i and every cyt node in cell
 Coord Wall_Node::calc_Morse_SC(int Ti) {
