@@ -1496,20 +1496,19 @@ void Cell::identify_Lamellipoida() {
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
 	shared_ptr<Wall_Node> current;
-	shared_ptr<Wall_Node> left_neighbor;
 	current = walls.at(0);
 	shared_ptr<Wall_Node> start = current;
 	// double my_x;
-	if (this->layer == 3 && this->leader == 1){
+	if (this->leader == 1){ // this->layer == 3 && 
 		do {
 			//Loop through all nodes; see if 
 			Coord curr_cc = this->get_Cell_Center();
 			Coord vec_a = current->get_Location() - curr_cc;
-			double cos_a = vec_a.get_X()/vec_a.length(); // NODE MIGHT COINCIDE WITH CENTER, RESULT IN A ZERO LENGTH.
-			if (cos_a>=0.77){current->set_Is_Lamellipodia(true);}
+			double cos_a = 0;
+			if (vec_a.length() != 0){ cos_a = vec_a.get_X()/vec_a.length();}
+			if (cos_a>=0.1){current->set_Is_Lamellipodia(true);} //0.77
 			else {current->set_Is_Lamellipodia(false);}
-			left_neighbor = current->get_Left_Neighbor();
-			current = left_neighbor;
+			current = current->get_Left_Neighbor();
 		} while(current != start);}
 	return; 
 }

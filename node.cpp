@@ -605,7 +605,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 				sum += calc_Boundary_Force(num_boundary_nodes,Ti);
 			}
 			*/
-			sum += Coord(0,0);//calc_Boundary_Force(num_boundary_nodes,Ti);
+			sum += Coord(0,0);// calc_Boundary_Force(num_boundary_nodes,Ti);
 		}
 
 
@@ -623,7 +623,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 		
 		// add pulling force to lamellipodia node
 		bool lamepd_check = this->is_Lamellipodia();
-		if (this->get_My_Cell()->get_Leader() == 1 && this->get_My_Cell()->get_Layer() == 3){ // adjacent to scab and in layer 3
+		if (this->get_My_Cell()->get_Leader() == 1 ){ //&& this->get_My_Cell()->get_Layer() == 3){ // adjacent to scab and in layer 3
 			if (lamepd_check)
 			{
 				sum += calc_Lamellipodia_Force(Ti);
@@ -648,10 +648,11 @@ Coord Wall_Node::calc_Lamellipodia_Force(int Ti){
 	Coord aux_force;
 	Coord cell_center = this->get_My_Cell()->get_Cell_Center();
 	Coord vec_a = this->get_Location() - cell_center;
+	Coord e1 = Coord(1,0);
 	if (vec_a.length()>0){
 		vec_a = vec_a*(1.0/vec_a.length());
 	} 
-	aux_force = vec_a * LAMELLIPODIA_FORCE;
+	aux_force = e1 * (-LAMELLIPODIA_FORCE);
 	return aux_force;
 }
 

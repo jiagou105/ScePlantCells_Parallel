@@ -677,7 +677,7 @@ void Tissue::update_Num_Boundary_Nodes() {
 }
 
 void Tissue::update_Scab_Location(int Ti){
-	// update ScabA, ScabB, ScabC here
+	// update scabA, scabB, scabC here
 	// 
 	this->scabA += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
 	this->scabB += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
@@ -1136,6 +1136,26 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 
 	return;
 }
+
+// print the scab location to VTK file
+void Tissue::print_VTK_Scab(ofstream& ofs) {
+	ofs << "# vtk DataFile Version 3.0" << endl;
+	ofs << "Point representing Sub_cellular elem model" << endl;
+	ofs << "ASCII" << endl << endl;
+	ofs << "DATASET UNSTRUCTURED_GRID" << endl;
+	ofs << "POINTS " << 3 << " float64" << endl; // right now only 3 points to represent the scab: A, B and C
+	ofs << this->scabA.get_X() << ' ' << this->scabA.get_Y() << ' ' << 0 << endl;
+	ofs << this->scabB.get_X() << ' ' << this->scabB.get_Y() << ' ' << 0 << endl;
+	ofs << this->scabC.get_X() << ' ' << this->scabC.get_Y() << ' ' << 0 << endl; 
+	/*
+	ofs << "CELLS " << 3 + rel_cnt<< ' ' << 
+	(num_Points + start_points.size()) + (rel_cnt*3)  << endl;
+	ofs << endl;
+
+	*/
+	return;
+	}
+
 
 void Tissue::one_To_One_Check() { 
 	for (unsigned int i = 0; i < cells.size(); i++) { 

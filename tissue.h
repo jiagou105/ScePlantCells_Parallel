@@ -94,9 +94,9 @@ class Tissue {
 
 		// Scab functions
 		void update_Scab_Press();
-		Coord get_ScabA(){return ScabA;}
-		Coord get_ScabB(){return ScabB;}
-		Coord get_ScabC(){return ScabC;}
+		Coord get_ScabA(){return scabA;}
+		Coord get_ScabB(){return scabB;}
+		Coord get_ScabC(){return scabC;}
 		void update_Scab_Location(int Ti);
 		// Not in use --------
 		void update_Linear_Bending_Springs();
@@ -125,6 +125,7 @@ class Tissue {
 		int update_VTK_Indices(bool cytoplasm);
 		void print_VTK_File(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Direction_File(ofstream& ofs);	
+		void print_VTK_Scab(ofstream& ofs);
 		void inc_Num_Deleted();
 		Coord get_Top_Cell_Center() {return top_cell_center;}
 		//Data output functions

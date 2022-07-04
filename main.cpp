@@ -183,6 +183,10 @@ int main(int argc, char* argv[]) {
 	ofstream ofs_noCyt;
 	string no_cyt_initial = "/Plant_Cell_NC_";
 
+	string scab_Filename;
+	ofstream ofs_scab;
+	string scab_initial = "/Scab_Loc_";
+
 	//int digits2;
 	string Number2;
 	string Locations_no_cyt;
@@ -384,6 +388,12 @@ int main(int argc, char* argv[]) {
 				//false is in reference to printing cytoplasm
 				growing_Tissue.print_VTK_File(ofs_noCyt,false);
 				ofs_noCyt.close();	
+
+				// output the scab location
+				scab_Filename = anim_folder + scab_initial  + Number +format;
+				ofs_scab.open(scab_Filename.c_str());
+				growing_Tissue.print_VTK_Scab(ofs_scab);
+				ofs_scab.close();	
 
 				out++;
 			}
