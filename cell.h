@@ -57,6 +57,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//0 is interphase, 1 is Mother, 2 is Daughter
 		bool terminal; //When all cells are marked as terminal, simulation stops.
 		int recent_div_MD;
+		int num_lam;
 	public:
 
 		Cell(Tissue* tissue);
@@ -114,7 +115,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//Identify boundaries
 		void identify_Boundaries(); 
 		// Identidy lamellipodia
-		void identify_Lamellipoida();
+		void identify_Lamellipodia();
 		// Scab functions
 		Coord calc_Scab_Press();
 		//get cell center
@@ -151,6 +152,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		bool is_Terminal(){return terminal;}
 		int get_Leader() {return leader;}
 		void set_Leader(int L);
+		int get_Num_Lam() {return num_lam;}
 
 		//Computations
 		double compute_membr_thresh(shared_ptr<Wall_Node> current);
@@ -247,6 +249,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		void print_VTK_Curved(ofstream& ofs, bool cytoplasm); 
 		//void print_VTK_Corners(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Boundary(ofstream& ofs, bool cytoplasm); 
+		void print_VTK_Lamellipodia(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm); 
 		void print_VTK_MD(ofstream& ofs, bool cytoplasm);
 		void print_VTK_OOP(ofstream& ofs, bool cytoplasm);

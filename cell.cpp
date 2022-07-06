@@ -57,6 +57,7 @@ Cell::Cell(Tissue* tissue) {
 	//same with recent_div = false
 	recent_div = false;
 	set_Terminal(true);
+	num_lam = 0;
 	recent_div_MD = 0;
 }
 //this constructor is used to initialize first set of cells
@@ -118,6 +119,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	growth_direction = Coord(0,0);
 	//This is a placeholder.  This is updated in main after signal calculation.
 	recent_div = false;
+	num_lam = 0;
 	recent_div_MD = 0;
 
 
@@ -1221,7 +1223,7 @@ void Cell::update_Cell_Progress(int& Ti) {
 	//if (Cell_Progress > 0.6) //cout << "CELL PROGRESS INCREASING" << endl;
 	bool cross_section_check = this->growing_this_cycle || !OUT_OF_PLANE_GROWTH;
 	double maturity = calc_Cell_Maturity(cross_section_check);
-	double max_maturity = (cross_section_check) ? 31 : 23;
+	double max_maturity = (cross_section_check) ? 20 : 20;
 	if (maturity >= num_cyt_nodes + 1 && maturity < max_maturity) {
 		//cout << "cyt node added "<< endl;
 		//if (cross_section_check) this->add_Cyt_Node();
@@ -1237,9 +1239,9 @@ double Cell::calc_Cell_Maturity(bool cross_section_check) {
 	double maturity;
 	double finish;
 	if (cross_section_check) { 
-		finish = 30;
+		finish = 20;
 	} else { 
-		finish = 22;
+		finish = 20;
 	}
 	double exponent = (NONLINEAR_GROWTH) ? 2.0/3.0 : 1.0;
 	double start = this->get_Init_Num_Nodes();
@@ -1492,12 +1494,13 @@ void Cell::identify_Boundaries() {
 }
 
 // identify lamellipodia nodes
-void Cell::identify_Lamellipoida() {
+void Cell::identify_Lamellipodia() {
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
 	shared_ptr<Wall_Node> current;
 	current = walls.at(0);
 	shared_ptr<Wall_Node> start = current;
+	int count = 0;
 	// double my_x;
 	if (this->leader == 1){ // this->layer == 3 && 
 		do {
@@ -1506,10 +1509,11 @@ void Cell::identify_Lamellipoida() {
 			Coord vec_a = current->get_Location() - curr_cc;
 			double cos_a = 0;
 			if (vec_a.length() != 0){ cos_a = vec_a.get_X()/vec_a.length();}
-			if (cos_a>=0.1){current->set_Is_Lamellipodia(true);} //0.77
+			if (cos_a>=0.645){current->set_Is_Lamellipodia(true); count += 1;} //0.77
 			else {current->set_Is_Lamellipodia(false);}
 			current = current->get_Left_Neighbor();
 		} while(current != start);}
+	this -> num_lam = count;
 	return; 
 }
 
@@ -2506,6 +2510,29 @@ void Cell::print_VTK_Boundary(ofstream& ofs, bool cytoplasm) {
 		if (color > 1) { 
 			cout << "Strange Color Value: " << color << endl;
 			cout << "is_Boundary() Value: " << currW->is_Boundary() << endl;
+			color = 0;
+		}
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+
+	} while(currW != left_Corner);
+	if (cytoplasm) {
+		for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			ofs << 2 << endl;
+		}
+	}
+	return;
+}
+
+void Cell::print_VTK_Lamellipodia(ofstream& ofs, bool cytoplasm) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	unsigned int color;
+	color = 0;
+	do {
+		color = (currW->is_Lamellipodia() ? 1 : 0);
+		if (color > 1) { 
+			cout << "Strange Color Value: " << color << endl;
+			cout << "is_Lamellipodia() Value: " << currW->is_Lamellipodia() << endl;
 			color = 0;
 		}
 		ofs << color << endl;

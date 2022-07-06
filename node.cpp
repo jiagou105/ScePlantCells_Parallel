@@ -624,8 +624,11 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 		// add pulling force to lamellipodia node
 		bool lamepd_check = this->is_Lamellipodia();
 		if (this->get_My_Cell()->get_Leader() == 1 ){ //&& this->get_My_Cell()->get_Layer() == 3){ // adjacent to scab and in layer 3
+			// cout<<"in leader_check"<<endl;
+			// cout<<"Location X: "<<get_Location().get_X()<< "Location Y: " <<get_Location().get_X() << endl;
 			if (lamepd_check)
 			{
+				// cout<<"in lamepd_check"<<endl;
 				sum += calc_Lamellipodia_Force(Ti);
 			}
 		}
@@ -652,7 +655,7 @@ Coord Wall_Node::calc_Lamellipodia_Force(int Ti){
 	if (vec_a.length()>0){
 		vec_a = vec_a*(1.0/vec_a.length());
 	} 
-	aux_force = e1 * (-LAMELLIPODIA_FORCE);
+	aux_force = (vec_a + e1) * LAMELLIPODIA_FORCE/static_cast<double>(this->get_My_Cell()->get_Num_Lam());
 	return aux_force;
 }
 

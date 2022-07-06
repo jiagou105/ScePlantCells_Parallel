@@ -393,6 +393,14 @@ void Tissue::identify_Boundaries() {
 	}
 	return;
 }
+void Tissue::identify_Lamellipodia() { 
+	for (unsigned int i = 0; i < cells.size(); i++) { 
+		// if (cells.at(i)->is_boundary == true)
+		cells.at(i)->identify_Lamellipodia();
+	}
+	return;
+}
+
 int Tissue::return_counts(int index){
 	return counts.at(index);
 }
@@ -1085,6 +1093,14 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 	ofs << "LOOKUP_TABLE discrete_colors" << endl;
 	for (unsigned int i = 0; i < cells.size(); i++) {
 		cells.at(i)->print_VTK_Boundary(ofs, cytoplasm);
+	}
+
+	ofs << endl;
+
+	ofs << "Scalars Lamellipodia float64" << 1 << endl;
+	ofs << "LOOKUP_TABLE discrete_colors" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_Lamellipodia(ofs, cytoplasm);
 	}
 
 	ofs << endl;

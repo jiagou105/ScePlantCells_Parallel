@@ -82,7 +82,7 @@ const double gamma_MI = 1.34;
 const double xsi_MI_div = .4;
 //
 /////// Subcellular element parameters for internal - internal interactions
-const double U_II = 95;
+const double U_II = 95; // if want to change the morse potential for internal nodes
 const double W_II = 6.71;
 const double xsi_II = .8;
 const double gamma_II = 1.34;
@@ -170,7 +170,7 @@ const double BASEMENT_MEMBRANE_MORSE_DISTANCE = 0.2;
 const double BASEMENT_MEMBRANE_MORSE_COEFFICIENT = 15.0;
 
 // LAMELLIPODIA FORCE
-const double LAMELLIPODIA_FORCE = 20000;
+const double LAMELLIPODIA_FORCE = 50;
 
 //extern int NUM_STEPS_PER_FRAME
 //extern int RECENT_DIV_NUM_FRAMES

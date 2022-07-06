@@ -1,3 +1,3 @@
--p,short,-cores,6,-hours,1,-test,scab_subs,-subfolder,Test_scab_subs/,-sh,scabs,-par,-PRINT,1
+-p,intel,-cores,12,-hours,12,-test,scab_subs,-subfolder,Test_scab_subs/,-sh,scabs,-par,-PRINT,1
 -BFM,-k_bend_stiff
 500,10

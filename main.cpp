@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
 	//Folders to hold Cell and Tissue level data
 	string cell_data_folder = argv[5];
 	string tissue_data_folder = argv[6];
+	string scab_loc_folder = argv[7];
 	//keep track of time
 	for (int i = 1; i < argc; i++) { 
 		if (!strcmp(argv[i], "-WR")) { 
@@ -211,6 +212,12 @@ int main(int argc, char* argv[]) {
 	ofstream tissue_data_file;
 	string tissue_data_initial = "/tissue_data_";
 	int out5 = 0;
+	//int digits6;
+	string Number6;
+	string scab_loc_data;
+	ofstream scab_loc_data_file;
+	string scab_loc_data_initial = "/scab_loc_";
+	int out6 = 0;
 
 	//(No longer use this loop, instead flag for terminal.)
 	//loop for time steps
@@ -234,7 +241,7 @@ int main(int argc, char* argv[]) {
 	}
 	cout << "Initialized with Theta_Flag: " << growing_Tissue.get_Theta_Flag() << endl; 
 
-	int terminal_timeout = 50000; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
+	int terminal_timeout = 80000; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
 	//cout << "Setup complete" << endl;
 
 	//Delta t is approximately 0.4s
@@ -316,6 +323,10 @@ int main(int argc, char* argv[]) {
 		if(Ti == 0) { 
 			growing_Tissue.identify_Boundaries();
 			growing_Tissue.update_Num_Boundary_Nodes();
+		}
+		//
+		if(Ti % 1000 == 1){
+		growing_Tissue.identify_Lamellipodia();
 		}
 
 		//adds internal node according to 

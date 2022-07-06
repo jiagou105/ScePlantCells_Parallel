@@ -156,12 +156,14 @@ int main(int argc, char* argv[]) {
 	if (printing_vtks) ofs << "mkdir " << final_path << "Animate_No_Cyt_" << test << "\n";
 	ofs << "mkdir " << final_path << "Cell_Data_" << test << "\n";
 	ofs << "mkdir " << final_path << "Tissue_Data_" << test << "\n";
+	ofs << "mkdir " << final_path << "Scab_Location_" << test << "\n";
 	ofs << "./program " << final_path << "Animate_Cyt_" << test << " " 
 		<< final_path << "Locations_test_" << test << " " 
 		<< final_path << "Nematic_test_" << test << " " 
 		<< final_path << "Animate_No_Cyt_" << test << " "
 		<< final_path << "Cell_Data_" << test << " "
-		<< final_path << "Tissue_Data_" << test;
+		<< final_path << "Tissue_Data_" << test << " "
+		<< final_path << "Scab_Location_" << test;
 	for (unsigned int i = 0; i < parameter_values.size(); i++ ) { 
 		ofs << " " << parameter_names.at(i) << " " << parameter_values.at(i);
 	}
