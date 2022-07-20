@@ -618,7 +618,7 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 		
 		//ADDED FOR SCAB SIMULATIONS ON June 13 2022
 		if ((this->get_My_Cell()->get_Leader() == 1)){
-			sum += calc_Scab_Force(Ti); // Coord(0,0);
+			sum +=  calc_Scab_Force(Ti); // Coord(0,0);
 		}
 		
 		// add pulling force to lamellipodia node
@@ -651,11 +651,13 @@ Coord Wall_Node::calc_Lamellipodia_Force(int Ti){
 	Coord aux_force;
 	Coord cell_center = this->get_My_Cell()->get_Cell_Center();
 	Coord vec_a = this->get_Location() - cell_center;
-	Coord e1 = Coord(1,0);
+//	Coord e1 = Coord(1,0);
 	if (vec_a.length()>0){
 		vec_a = vec_a*(1.0/vec_a.length());
 	} 
-	aux_force = (vec_a + e1) * LAMELLIPODIA_FORCE/static_cast<double>(this->get_My_Cell()->get_Num_Lam());
+	Coord B  = this->my_cell->get_Tissue()->get_ScabB();
+	double lamellipodia_force_magnitude = LAMELLIPODIA_FORCE/static_cast<double>(this->get_My_Cell()->get_Num_Lam())*(1.0+max(B.get_Y()-this->get_Location().get_X(),0.0));
+	aux_force = (vec_a) * lamellipodia_force_magnitude;
 	return aux_force;
 }
 

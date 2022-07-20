@@ -58,6 +58,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		bool terminal; //When all cells are marked as terminal, simulation stops.
 		int recent_div_MD;
 		int num_lam;
+		double phi_lamellipodia;
 	public:
 
 		Cell(Tissue* tissue);
@@ -153,6 +154,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		int get_Leader() {return leader;}
 		void set_Leader(int L);
 		int get_Num_Lam() {return num_lam;}
+		void set_Phi_Lamellipodia(double new_phi);
+		double get_Phi_Lamellipodia() {return phi_lamellipodia;}
 
 		//Computations
 		double compute_membr_thresh(shared_ptr<Wall_Node> current);

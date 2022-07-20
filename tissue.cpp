@@ -28,8 +28,8 @@ Tissue::Tissue(string filename, mt19937 gen) {
 	num_IP_divs = 0;
 	total_scab_press = Coord(0,0);
 	scabA = Coord(-7.6,7.6);
-	scabB = Coord(10.0,-10.0);
-	scabC = Coord(30.0,-10.0);
+	scabB = Coord(10.0,-15.0);
+	scabC = Coord(50.0,-15.0);
 	if (BOUNDARY_PULL_TYPE == 1) { 
 		time_frozen = -1;
 	} else { 
@@ -687,6 +687,11 @@ void Tissue::update_Num_Boundary_Nodes() {
 void Tissue::update_Scab_Location(int Ti){
 	// update scabA, scabB, scabC here
 	// 
+	/*
+	this->scabA += Coord(this->total_scab_press.get_X()*(-dt*0.1),0); 
+	this->scabB += Coord(this->total_scab_press.get_X()*(-dt*0.1),0); 
+	this->scabC += Coord(this->total_scab_press.get_X()*(-dt*0.1),0); 
+	*/
 	this->scabA += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
 	this->scabB += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
 	this->scabC += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
@@ -1159,9 +1164,19 @@ void Tissue::print_VTK_Scab(ofstream& ofs) {
 	ofs << "Point representing Sub_cellular elem model" << endl;
 	ofs << "ASCII" << endl << endl;
 	ofs << "DATASET UNSTRUCTURED_GRID" << endl;
-	ofs << "POINTS " << 3 << " float64" << endl; // right now only 3 points to represent the scab: A, B and C
+	ofs << "POINTS " << 203 << " float64" << endl; // right now only 3 points to represent the scab: A, B and C
 	ofs << this->scabA.get_X() << ' ' << this->scabA.get_Y() << ' ' << 0 << endl;
+	Coord current_loc;
+	for (unsigned int i = 0; i < 100; i++){
+		current_loc = this->scabA * (1.0 - static_cast<double>(i)/100.0) + this->scabB * static_cast<double>(i)/100.0;
+		ofs << current_loc.get_X() << ' ' << current_loc.get_Y() << ' ' << 0 << endl;
+	}
+
 	ofs << this->scabB.get_X() << ' ' << this->scabB.get_Y() << ' ' << 0 << endl;
+	for (unsigned int i = 0; i < 100; i++){
+		current_loc = this->scabB * (1.0 - static_cast<double>(i)/100.0) + this->scabC * static_cast<double>(i)/100.0;
+		ofs << current_loc.get_X() << ' ' << current_loc.get_Y() << ' ' << 0 << endl;
+	}
 	ofs << this->scabC.get_X() << ' ' << this->scabC.get_Y() << ' ' << 0 << endl; 
 	/*
 	ofs << "CELLS " << 3 + rel_cnt<< ' ' << 

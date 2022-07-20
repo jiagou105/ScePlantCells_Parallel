@@ -59,6 +59,7 @@ Cell::Cell(Tissue* tissue) {
 	set_Terminal(true);
 	num_lam = 0;
 	recent_div_MD = 0;
+	phi_lamellipodia = 0;
 }
 //this constructor is used to initialize first set of cells
 //calls set_growth_rate which detemrines growth rate based on WUS CONC
@@ -121,7 +122,7 @@ Cell::Cell(int rank, Coord center, double radius, Tissue* tiss, int layer, int b
 	recent_div = false;
 	num_lam = 0;
 	recent_div_MD = 0;
-
+	phi_lamellipodia = 0;
 
 
 	//cout << "layer" << this->layer << endl;
@@ -682,6 +683,11 @@ void Cell::set_Terminal(bool t) {
 
 void Cell::set_Leader(int L) { 
 	this->leader = L;
+	return;
+}
+
+void Cell::set_Phi_Lamellipodia(double new_phi){
+	this->phi_lamellipodia = new_phi;
 	return;
 }
 
@@ -1495,6 +1501,10 @@ void Cell::identify_Boundaries() {
 
 // identify lamellipodia nodes
 void Cell::identify_Lamellipodia() {
+	// update phi_lamellipodia 
+	double s_x = this->my_tissue->get_ScabC().get_X();
+	double s_y = this->my_tissue->get_ScabA().get_Y();
+	
 	vector<shared_ptr<Wall_Node>> walls;
 	this->get_Wall_Nodes_Vec(walls);
 	shared_ptr<Wall_Node> current;
@@ -1503,13 +1513,17 @@ void Cell::identify_Lamellipodia() {
 	int count = 0;
 	// double my_x;
 	if (this->leader == 1){ // this->layer == 3 && 
+		Coord curr_cc = this->get_Cell_Center();
+		double phi_s = atan((s_y-curr_cc.get_Y())/(s_x-curr_cc.get_X()));
+		double new_phi = this->get_Phi_Lamellipodia(); 
+		new_phi += dt*(0.1*(phi_s-new_phi)-0.1*new_phi); // replace 0.1 by any constant
+		this->set_Phi_Lamellipodia(new_phi);
 		do {
 			//Loop through all nodes; see if 
-			Coord curr_cc = this->get_Cell_Center();
 			Coord vec_a = current->get_Location() - curr_cc;
 			double cos_a = 0;
-			if (vec_a.length() != 0){ cos_a = vec_a.get_X()/vec_a.length();}
-			if (cos_a>=0.645){current->set_Is_Lamellipodia(true); count += 1;} //0.77
+			if (vec_a.length() != 0){ cos_a = (vec_a.get_X()*cos(this->phi_lamellipodia)+vec_a.get_Y()*sin(this->phi_lamellipodia))/vec_a.length();}
+			if (cos_a>=0.7){current->set_Is_Lamellipodia(true); count += 1;} //0.77
 			else {current->set_Is_Lamellipodia(false);}
 			current = current->get_Left_Neighbor();
 		} while(current != start);}
