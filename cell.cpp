@@ -1516,7 +1516,7 @@ void Cell::identify_Lamellipodia() {
 		Coord curr_cc = this->get_Cell_Center();
 		double phi_s = atan((s_y-curr_cc.get_Y())/(s_x-curr_cc.get_X()));
 		double new_phi = this->get_Phi_Lamellipodia(); 
-		new_phi += dt*(0.1*(phi_s-new_phi)-0.1*new_phi); // replace 0.1 by any constant
+		new_phi += dt*(0.02*(phi_s-new_phi)-0.1*new_phi); // replace 0.1 by any constant
 		this->set_Phi_Lamellipodia(new_phi);
 		do {
 			//Loop through all nodes; see if 
@@ -1528,6 +1528,43 @@ void Cell::identify_Lamellipodia() {
 			current = current->get_Left_Neighbor();
 		} while(current != start);}
 	this -> num_lam = count;
+	return; 
+}
+
+
+
+void Cell::identify_BM_Adhesion() {
+	vector<shared_ptr<Wall_Node>> walls;
+	this->get_Wall_Nodes_Vec(walls);
+	shared_ptr<Wall_Node> current;
+	shared_ptr<Wall_Node> left_neighbor;
+	current = walls.at(0);
+	shared_ptr<Wall_Node> start = current;
+	Coord bm_adh_site;
+	double ad_dist;
+	double random;
+	Coord adh_vec;
+	if (this->layer == 3) { // layer 3 is the bottom layer, change it later
+		do {
+			if (!current->get_BM_Adhesion()){
+				random = ((double) rand()) / (double) RAND_MAX;
+				if (current->get_Location().get_X()<BM_LOC_RIGHT && (current->get_Location().get_Y()-BASEMENT_MEMBRANE_Y_LOCATION)< BM_DIST_FOR_CREATION && random<BM_CREATION_RATE) {   // 10.0 is the x-location of scabB, left most of the scarb, change it later 
+					current->set_BM_Adhesion(true);
+					bm_adh_site = Coord(current->get_Location().get_X(),BASEMENT_MEMBRANE_Y_LOCATION);
+					current->set_BM_Adhesion_Loc(bm_adh_site);
+				}
+			} else {
+				random = ((double) rand()) / (double) RAND_MAX;
+				adh_vec = current->get_Location() - current->get_BM_Adhesion_Loc();
+				ad_dist = adh_vec.length();
+				if (random < exp(ad_dist/BM_DIST_REMOVAL_MAX-BM_OFF_RATE)){
+					current->set_BM_Adhesion(false);
+				}
+			}
+			left_neighbor = current->get_Left_Neighbor();
+			current = left_neighbor;
+		} while(current != start);
+	}
 	return; 
 }
 

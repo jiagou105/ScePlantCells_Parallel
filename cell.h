@@ -117,6 +117,8 @@ class Cell: public enable_shared_from_this<Cell> {
 		void identify_Boundaries(); 
 		// Identidy lamellipodia
 		void identify_Lamellipodia();
+		// identify bm adhesion binding
+		void identify_BM_Adhesion();
 		// Scab functions
 		Coord calc_Scab_Press();
 		//get cell center

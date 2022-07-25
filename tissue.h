@@ -87,6 +87,7 @@ class Tissue {
 		
 		void identify_Boundaries();
 		void identify_Lamellipodia();
+		void identify_BM_Adhesion();
 		void update_Boundary_Directions();
 		void update_Num_Boundary_Nodes();
 		int get_Num_Boundary_Nodes(){return num_boundary_nodes;}

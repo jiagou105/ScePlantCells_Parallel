@@ -401,6 +401,14 @@ void Tissue::identify_Lamellipodia() {
 	return;
 }
 
+void Tissue::identify_BM_Adhesion() { 
+	for (unsigned int i = 0; i < cells.size(); i++) { 
+		// if (cells.at(i)->is_boundary == true)
+		cells.at(i)->identify_BM_Adhesion();
+	}
+	return;
+}
+
 int Tissue::return_counts(int index){
 	return counts.at(index);
 }

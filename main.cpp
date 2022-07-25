@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
 	}
 	cout << "Initialized with Theta_Flag: " << growing_Tissue.get_Theta_Flag() << endl; 
 
-	int terminal_timeout = 1000000; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
+	int terminal_timeout = 4000000; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
 	//cout << "Setup complete" << endl;
 
 	//Delta t is approximately 0.4s
@@ -327,6 +327,10 @@ int main(int argc, char* argv[]) {
 		//
 		if(Ti % 1000 == 1){
 		growing_Tissue.identify_Lamellipodia();
+		}
+
+		if(Ti % 1000 == 1){
+			growing_Tissue.identify_BM_Adhesion();
 		}
 
 		//adds internal node according to 

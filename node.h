@@ -81,6 +81,8 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		bool is_lamellipodia;
 		bool touch_scab;
 		Coord scab_force;
+		bool bm_adhesion;
+		Coord bm_adhesion_loc;
 		//variables used for adhesion
 		vector<shared_ptr<Wall_Node>> adhesion_vector;
    public:
@@ -128,6 +130,10 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		// set/get touch scab
 		void set_Touch_Scab(bool ts);
 		double get_Touch_Scab() {return touch_scab;}
+		void set_BM_Adhesion(bool ad);
+		void set_BM_Adhesion_Loc(Coord ad_loc);
+		bool get_BM_Adhesion() {return bm_adhesion;}
+		Coord get_BM_Adhesion_Loc() {return bm_adhesion_loc;}
 		//Adhesion functions
 
 		void make_connection(vector<shared_ptr<Wall_Node>> neighbor_walls);
@@ -176,6 +182,9 @@ class Wall_Node: public Node, public enable_shared_from_this<Wall_Node> {
 		Coord calc_Lamellipodia_Force(int Ti);
 		bool is_Lamellipodia(){return is_lamellipodia;}
 		void set_Is_Lamellipodia(bool status);
+
+		// bm adhesion force
+		Coord calc_BM_Adhesion_Force(int Ti);
 };
 //===========================
 #endif  

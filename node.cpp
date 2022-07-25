@@ -193,6 +193,8 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell) : Node(loc) {
 	this->set_Is_Lamellipodia(false);
 	touch_scab = false;
 	scab_force = Coord(0,0);
+	this->bm_adhesion = false;
+	this->bm_adhesion_loc = Coord(0,0);
 }
 
 Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> left, shared_ptr<Wall_Node> right) : Node(loc)   {
@@ -215,6 +217,8 @@ Wall_Node::Wall_Node(Coord loc,shared_ptr<Cell> my_cell, shared_ptr<Wall_Node> l
 	this->set_Is_Lamellipodia(false);
 	touch_scab = false;
 	scab_force = Coord(0,0);
+	this->bm_adhesion = false;
+	this->bm_adhesion_loc = Coord(0,0);
 }
 
 Wall_Node::~Wall_Node() {
@@ -305,6 +309,16 @@ void Wall_Node::set_Scab_Force(Coord sf){
 
 void Wall_Node::set_Touch_Scab(bool ts){
 	this->touch_scab = ts;
+	return;
+}
+
+void Wall_Node::set_BM_Adhesion(bool ad){
+	this->bm_adhesion = ad;
+	return;
+}
+
+void Wall_Node::set_BM_Adhesion_Loc(Coord ad_loc){
+	this->bm_adhesion_loc = ad_loc;
 	return;
 }
 
@@ -633,6 +647,10 @@ void Wall_Node::calc_Forces(int num_boundary_nodes,int Ti) {
 			}
 		}
 
+		if (this->get_BM_Adhesion()){
+			sum += calc_BM_Adhesion_Force(Ti);
+		}
+
 		//Put in checks for 
 		//Scab force
 		//Put "Leading " boolean on every cell on the front.
@@ -660,6 +678,22 @@ Coord Wall_Node::calc_Lamellipodia_Force(int Ti){
 	aux_force = (vec_a) * lamellipodia_force_magnitude;
 	return aux_force;
 }
+
+
+// calculate bm adhesion force
+Coord Wall_Node::calc_BM_Adhesion_Force(int Ti){
+	Coord aux_force;
+	Coord aux_vec;
+	double aux_length;
+	aux_vec = this->get_Location()-this->get_BM_Adhesion_Loc();
+	aux_length = aux_vec.length();
+	if (aux_length>0) {
+		aux_vec = aux_vec*1.0/aux_length;
+	}
+	aux_force = aux_vec*(BM_SPRING_STIFF*(BM_SPRING_REST_LENGTH-aux_length));
+	return aux_force;
+}
+
 
 
 //morse potential between wall node i and every cyt node in cell
