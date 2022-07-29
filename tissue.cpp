@@ -27,9 +27,9 @@ Tissue::Tissue(string filename, mt19937 gen) {
 	num_divs = 0;
 	num_IP_divs = 0;
 	total_scab_press = Coord(0,0);
-	scabA = Coord(-7.6,7.6);
-	scabB = Coord(10.0,-15.0);
-	scabC = Coord(50.0,-15.0);
+	scabA = Coord(-6.6,10.6);
+	scabB = Coord(BM_LOC_RIGHT,-12.0);
+	scabC = Coord(51.0,-12.0);
 	if (BOUNDARY_PULL_TYPE == 1) { 
 		time_frozen = -1;
 	} else { 
@@ -700,9 +700,9 @@ void Tissue::update_Scab_Location(int Ti){
 	this->scabB += Coord(this->total_scab_press.get_X()*(-dt*0.1),0); 
 	this->scabC += Coord(this->total_scab_press.get_X()*(-dt*0.1),0); 
 	*/
-	this->scabA += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
-	this->scabB += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
-	this->scabC += Coord(0,this->total_scab_press.get_Y()*(-dt*0.1)); 
+	this->scabA += Coord(0,this->total_scab_press.get_Y()*(-dt*SCAB_LIFTING_RATE)); 
+	this->scabB += Coord(0,this->total_scab_press.get_Y()*(-dt*SCAB_LIFTING_RATE)); 
+	this->scabC += Coord(0,this->total_scab_press.get_Y()*(-dt*SCAB_LIFTING_RATE)); 
 	return;
 }
 
@@ -1116,6 +1116,13 @@ void Tissue::print_VTK_File(ofstream& ofs, bool cytoplasm) {
 		cells.at(i)->print_VTK_Lamellipodia(ofs, cytoplasm);
 	}
 
+	ofs << endl;
+
+	ofs << "Scalars BM_Adhesion float64" << 1 << endl;
+	ofs << "LOOKUP_TABLE discrete_colors" << endl;
+	for (unsigned int i = 0; i < cells.size(); i++) {
+		cells.at(i)->print_VTK_BM_Adhesion(ofs, cytoplasm);
+	}
 	ofs << endl;
 
 	ofs << "Scalars Growth_Direction float64" << 1 << endl;

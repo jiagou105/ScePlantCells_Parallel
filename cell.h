@@ -255,6 +255,7 @@ class Cell: public enable_shared_from_this<Cell> {
 		//void print_VTK_Corners(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Boundary(ofstream& ofs, bool cytoplasm); 
 		void print_VTK_Lamellipodia(ofstream& ofs, bool cytoplasm);
+		void print_VTK_BM_Adhesion(ofstream& ofs, bool cytoplasm);
 		void print_VTK_Growth_Dir(ofstream& ofs, bool cytoplasm); 
 		void print_VTK_MD(ofstream& ofs, bool cytoplasm);
 		void print_VTK_OOP(ofstream& ofs, bool cytoplasm);

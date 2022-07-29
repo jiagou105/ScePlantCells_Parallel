@@ -2598,6 +2598,30 @@ void Cell::print_VTK_Lamellipodia(ofstream& ofs, bool cytoplasm) {
 	return;
 }
 
+
+void Cell::print_VTK_BM_Adhesion(ofstream& ofs, bool cytoplasm) {
+	shared_ptr<Wall_Node> currW = left_Corner;
+	unsigned int color;
+	color = 0;
+	do {
+		color = (currW->get_BM_Adhesion() ? 1 : 0);
+		if (color > 1) { 
+			cout << "Strange Color Value: " << color << endl;
+			cout << "get_BM_Adhesion() Value: " << currW->get_BM_Adhesion() << endl;
+			color = 0;
+		}
+		ofs << color << endl;
+		currW = currW->get_Left_Neighbor();
+
+	} while(currW != left_Corner);
+	if (cytoplasm) {
+		for(unsigned int i = 0; i < cyt_nodes.size(); i++) {
+			ofs << 2 << endl;
+		}
+	}
+	return;
+}
+
 void Cell::print_VTK_MD(ofstream& ofs, bool cytoplasm) {
 	shared_ptr<Wall_Node> currW = left_Corner;
 	unsigned int color = this->recent_div_MD;

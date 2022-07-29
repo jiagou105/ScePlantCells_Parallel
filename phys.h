@@ -170,16 +170,19 @@ const double BASEMENT_MEMBRANE_MORSE_DISTANCE = 0.2;
 const double BASEMENT_MEMBRANE_MORSE_COEFFICIENT = 15.0;
 
 // LAMELLIPODIA FORCE
-const double LAMELLIPODIA_FORCE = 100;
+const double LAMELLIPODIA_FORCE = 50;
+
+// SCAB MOVE UP RATE
+const double SCAB_LIFTING_RATE = 0.04;
 
 // basement membrane adhesions 
-const double BM_LOC_RIGHT = 10.0;
+const double BM_LOC_RIGHT = 11.0;
 const double BM_DIST_FOR_CREATION = 0.5;
 const double BM_CREATION_RATE = 0.5;
 const double BM_SPRING_REST_LENGTH = 0.3;
-const double BM_SPRING_STIFF = 5.0;
+const double BM_SPRING_STIFF = 15.0;
 const double BM_DIST_REMOVAL_MAX = 1.0;
-const double BM_OFF_RATE = 2.0;
+const double BM_OFF_RATE = 3.0;
 //extern int NUM_STEPS_PER_FRAME
 //extern int RECENT_DIV_NUM_FRAMES
 #endif

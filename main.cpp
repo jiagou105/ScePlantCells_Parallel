@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
 	}
 	cout << "Initialized with Theta_Flag: " << growing_Tissue.get_Theta_Flag() << endl; 
 
-	int terminal_timeout = 4000000; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
+	int terminal_timeout = 1000000; //Plant stops 40.28 hours (exactly 145 vtks) after simulation begins
 	//cout << "Setup complete" << endl;
 
 	//Delta t is approximately 0.4s
@@ -372,16 +372,22 @@ int main(int argc, char* argv[]) {
 			if(Ti % NUM_STEPS_PER_FRAME == 0) {
 				digits = ceil(log10(out + 1));
 				if (digits == 1 || digits == 0) {
-					Number = "0000" + to_string(out);
+					Number = "00000" + to_string(out);
 				}	
 				else if (digits == 2) {
-					Number = "000" + to_string(out);
+					Number = "0000" + to_string(out);
 				}	
 				else if (digits == 3) {
-					Number = "00" + to_string(out);
+					Number = "000" + to_string(out);
 				}
 				else if (digits == 4) {
+					Number = "00" + to_string(out);
+				}
+				else if (digits == 5) {
 					Number = "0" + to_string(out);
+				}
+				else if (digits == 6) {
+					Number = to_string(out);
 				}
 
 				Filename = anim_folder + initial + Number + format;
